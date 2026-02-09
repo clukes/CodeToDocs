@@ -9,7 +9,7 @@
 
 ### User Story 0 — One-Command Bootstrap Install (Priority: P0)
 
-A developer discovers CodeToDocs and wants to add it to their existing repository. They run a single command (`uvx codetodocs` or `npx codetodocs`) which copies all prompt files and templates into their repo, so they can immediately invoke `/codetodocs.init`.
+A developer discovers CodeToDocs and wants to add it to their existing repository. They run a single command (`uvx codetodocs`) which copies all prompt files and templates into their repo, so they can immediately invoke `/codetodocs.init`.
 
 **Why this priority**: Without the files in the repo, no agent commands can be invoked. The installer eliminates the manual file-copy step and is the first thing a new user does.
 
@@ -129,14 +129,13 @@ A developer wants to see which components in their repository have documentation
 - **FR-016**: The init prompt MUST NOT overwrite an existing `.codetodocs/` directory when invoked on an already-initialized repository.
 - **FR-017**: The AI context JSON template MUST define a schema containing component purpose, key modules, public API signatures, types, configuration schema, and complexity metrics.
 - **FR-018**: System MUST provide a `/codetodocs.status` prompt command that instructs the agent to report documentation coverage (documented components, undocumented components, potentially stale components).
-- **FR-019**: System MUST provide a bootstrap installer runnable via `uvx codetodocs` (Python) or `npx codetodocs` (Node) that copies all prompt files and templates into the current repository.
-- **FR-020**: The bootstrap installer MUST be idempotent — it MUST NOT overwrite files that already exist in the target repository.
+- **FR-019**: System MUST provide a bootstrap installer runnable via `uvx codetodocs` (Python) that copies all prompt files and templates into the current repository. An `npx codetodocs` (Node) alternative MAY be added in a future iteration.
+- **FR-020**: The bootstrap installer MUST be idempotent — it MUST NOT overwrite or modify any existing files in the target repository.
 - **FR-021**: The bootstrap installer MUST report which files were copied and which were skipped (already present).
-- **FR-022**: The bootstrap installer MUST NOT modify any existing files in the target repository.
 - **FR-023**: When no `components` are defined in config, the system MUST treat the entire repository as a single component using the repository name.
 - **FR-024**: The config MUST support a `components` list where each component specifies `name`, `paths`, and `description`.
 - **FR-025**: The config MUST support a `documents` list for defining custom documents beyond the three defaults, each with `name`, `template`, `output`, and `audience`.
-- **FR-026**: Users MUST be able to override default output paths for technical, product, and AI documents.
+- **FR-026**: *(Removed — the `documents` configuration in FR-025 allows users to define custom documents with arbitrary output paths. For the three default document types, the output path is derived from `output_dir`. If a user needs a different path for a default type, they can redefine it as a custom document.)*
 - **FR-027**: Generated documentation files MUST include an HTML comment header with structured metadata (component name, generation timestamp in ISO 8601 format) to identify CodeToDocs-generated files and enable staleness detection. Example: `<!-- CodeToDocs | Component: frontend | Generated: 2026-02-09T14:30:00Z -->`. For JSON files, use a `_codetodocs` metadata object.
 
 ### Key Entities
@@ -156,7 +155,7 @@ A developer wants to see which components in their repository have documentation
 
 - **SC-001**: Users can go from running a single install command to having a fully initialized configuration by invoking one more agent command (`/codetodocs.init`).
 - **SC-002**: For every component processed, exactly three documentation artifacts are produced (technical, product, AI context) with no missing outputs.
-- **SC-003**: 90% of documentation generation runs on a typical repository (under 50 source files) produce structurally valid output conforming to the templates.
+- **SC-003**: 90% of documentation generation runs on a typical repository (under 50 source files) produce structurally valid output: Markdown docs contain all section headings defined in the template; AI context JSON passes validation against the schema in `contracts/ai-context-schema.md`.
 - **SC-004**: Incremental documentation updates process only components containing changed files, skipping unchanged components entirely.
 - **SC-005**: The tool works across at least two different AI coding agent platforms (e.g., GitHub Copilot and Cursor) with consistent results.
 - **SC-006**: The tool correctly excludes all files matching `.gitignore` and `.codetodocsignore` patterns, with zero false inclusions.

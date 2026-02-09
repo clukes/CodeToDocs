@@ -1,16 +1,16 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.0.0 → 2.0.0 → 2.1.0
-  Latest change: 2.0.0 → 2.1.0 (MINOR — added bootstrap installer to Principle I and Phase 0)
-  Previous change: 1.0.0 → 2.0.0 (MAJOR — architecture change from Go binary to prompt-driven)
+  Version change: 1.0.0 → 2.0.0 → 2.1.0 → 2.2.0
+  Latest change: 2.1.0 → 2.2.0 (MINOR — aligned Principles III and VI with per-component architecture)
+  Previous change: 2.0.0 → 2.1.0 (MINOR — added bootstrap installer to Principle I and Phase 0)
   Modified principles:
     - I. "Single Binary, Zero Dependencies" → "Prompt-Driven, Zero Dependencies"
     - II. "Local-First, Manual Control" — preserved, reworded for agent context
-    - III. "Tri-Audience Output" — preserved unchanged (NON-NEGOTIABLE)
+    - III. "Tri-Audience Output" — changed scope from per-file to per-component (NON-NEGOTIABLE)
     - IV. "Git-Native Intelligence" — preserved, agent tools replace go-git
     - V. "Security by Default" — simplified (no API key management needed)
-    - VI. "Resilience & Performance" — reframed for prompt context
+    - VI. "Determinism & Resilience" — changed error isolation from per-file to per-component
   Removed sections:
     - Technical Stack & Constraints (Go-specific table removed entirely)
   Added sections:
@@ -74,20 +74,20 @@ are inherently explicit — the user types the command.
 
 ### III. Tri-Audience Output (NON-NEGOTIABLE)
 
-Every processed source file MUST produce exactly three distinct
+Every processed component MUST produce exactly three distinct
 documentation artifacts:
 
-1. **Technical Docs** (`docs/technical/{filename}.md`) — targeted
+1. **Technical Docs** (`docs/technical/{component}.md`) — targeted
    at engineers; covers implementation, edge cases, dependencies.
-2. **Product Docs** (`docs/product/{filename}.md`) — targeted at
+2. **Product Docs** (`docs/product/{component}.md`) — targeted at
    PMs/stakeholders; covers business value, rules, user impact.
-3. **AI Context** (`docs/ai/{filename}.json`) — targeted at AI
+3. **AI Context** (`docs/ai/{component}.json`) — targeted at AI
    agents/RAG systems; strict JSON schema with signatures, types,
    exports, and complexity scores.
 
 The prompt instructions MUST guide the agent to generate all
-three artifacts for each file. If any artifact cannot be
-generated for a file, the agent MUST report it rather than
+three artifacts for each component. If any artifact cannot be
+generated for a component, the agent MUST report it rather than
 silently skipping.
 
 **Rationale:** This is the core value proposition. Each audience
@@ -137,9 +137,9 @@ security concerns.
   structure and sections expected in each output type.
 - If the agent produces output that doesn't match the expected
   structure, the prompt SHOULD instruct the agent to self-correct.
-- Failures in one file's documentation MUST NOT halt processing
-  of remaining files; the prompt MUST instruct the agent to
-  report errors and continue.
+- Failures in one component's documentation MUST NOT halt
+  processing of remaining components; the prompt MUST instruct
+  the agent to report errors and continue.
 
 **Rationale:** Prompt-driven tools must compensate for LLM
 non-determinism with precise structural templates and clear
@@ -223,4 +223,4 @@ PR discussions, and verbal agreements.
 - **Runtime guidance:** See the agent-file-template for
   development guidelines that operationalize these principles.
 
-**Version**: 2.1.0 | **Ratified**: 2026-02-09 | **Last Amended**: 2026-02-09
+**Version**: 2.2.0 | **Ratified**: 2026-02-09 | **Last Amended**: 2026-02-09
