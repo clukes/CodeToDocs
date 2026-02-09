@@ -53,40 +53,104 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 
 ### 4.3. Documentation Outputs (The "Tri-Audience" Strategy)
 
-**Core Requirement:** Every source file processed must generate three distinct artifacts to serve different stakeholders.
+**Core Requirement:** Each **component** (or the entire repository if not a monorepo) generates three distinct documentation artifacts to serve different stakeholders. Documentation is at the component level, not per-file.
+
+**Component Definition:**
+* A **component** is a logical unit of the codebase — a service, library, app, or module.
+* For simple repositories, the entire repo is treated as a single component.
+* For monorepos, users define multiple components (e.g., `frontend`, `backend`, `shared-lib`).
+* Components are specified in `.codetodocs/config.yaml`.
 
 **Trigger & Processing:**
-* **Input:** Source code content + Git Diff (if updating).
-* **Processing:** The agent reads each file, applies the prompt instructions, and generates all three outputs per file.
+* **Input:** All source files within the component + Git Diff (if updating).
+* **Processing:** The agent reads the component's codebase holistically, applies the prompt instructions, and generates one set of docs per component.
 
 **Output 1: Technical Docs (Target: Engineers)**
-* **Location:** `docs/technical/{filename}.md`
-* **Focus:** Implementation details, "How to work with this code."
+* **Location:** `docs/technical/{component}.md` (default) or custom path
+* **Focus:** Implementation details, "How to work with this component."
 * **Content:**
-    * **Setup/Usage:** How to import or instantiate this module.
-    * **Key Functions:** Technical explanation of the main methods.
-    * **Edge Cases:** Known limitations or specific error handling logic.
-    * **Dependencies:** What external libraries this file relies on.
+    * **Purpose:** What this component does and why it exists.
+    * **Architecture:** High-level structure, key modules, and data flow.
+    * **Setup & Installation:** How to set up the development environment.
+    * **Running:** How to run, build, and test the component.
+    * **Configuration:** Environment variables, config files, and settings.
+    * **Key APIs/Functions:** Technical explanation of the main interfaces.
+    * **Edge Cases:** Known limitations, error handling, and gotchas.
+    * **Dependencies:** External libraries and services this component relies on.
 
 **Output 2: Product Docs (Target: PMs/Stakeholders)**
-* **Location:** `docs/product/{filename}.md`
-* **Focus:** Business value, "What does this actually do for the user/business?"
+* **Location:** `docs/product/{component}.md` (default) or custom path
+* **Focus:** Business value, "What does this component do for the user/business?"
 * **Content:**
-    * **Feature Summary:** High-level description of functionality in plain English (no code).
-    * **Business Rules:** Specific logic that impacts the business (e.g., "Users must be verified to see X").
-    * **User Impact:** How changes in this file affect the end-user experience.
+    * **Purpose:** Plain-English description of functionality.
+    * **Features:** Key capabilities and user-facing functionality.
+    * **Business Rules:** Policies and logic that impact the business (e.g., "Users must be verified to see X").
+    * **User Impact:** How this component affects the end-user experience.
+    * **Configuration & Policies:** Business-relevant settings and constraints.
 
 **Output 3: AI Context (Target: Agents/RAG)**
-* **Location:** `docs/ai/{filename}.json`
-* **Focus:** Machine-readable structural facts.
+* **Location:** `docs/ai/{component}.json` (default) or custom path
+* **Focus:** Machine-readable structural facts for the entire component.
 * **Content:**
-    * Strict JSON schema containing signatures, types, exports, and complexity scores.
+    * Component purpose and responsibilities.
+    * Key modules, classes, and their relationships.
+    * Public API signatures and types.
+    * Configuration schema.
+    * Complexity and dependency metrics.
 
 ### 4.4. Configuration
 * **File:** `.codetodocs/config.yaml`.
-* **Settings:**
-    * `output_dir`: (default: `docs/`)
-    * `target_branch`: (default: `main`)
+* **Core Settings:**
+    * `output_dir`: (default: `docs/`) — Base directory for generated documentation.
+    * `target_branch`: (default: `main`) — Branch to diff against for incremental updates.
+
+* **Component Definition:**
+    * `components`: A list defining the logical components of the repository.
+    * Each component specifies:
+        * `name`: Identifier used in output filenames.
+        * `paths`: List of directory/file paths that belong to this component.
+        * `description`: Brief description of the component's purpose.
+    * If `components` is omitted or empty, the entire repository is treated as a single component named after the repo.
+
+* **Custom Documents:**
+    * `documents`: Optional list of additional document definitions beyond the three defaults.
+    * Each document specifies:
+        * `name`: Document identifier.
+        * `template`: Path to a custom template file.
+        * `output`: Custom output path (overrides default location).
+        * `audience`: Target audience description.
+    * Users can also override the output paths for the default documents (technical, product, ai) per component.
+
+**Example Configuration:**
+```yaml
+# .codetodocs/config.yaml
+output_dir: docs/
+target_branch: main
+
+# Component definitions (omit for single-component repos)
+components:
+  - name: frontend
+    paths:
+      - apps/web/
+      - packages/ui/
+    description: React web application and shared UI components
+  - name: backend
+    paths:
+      - apps/api/
+      - packages/db/
+    description: Node.js API server and database layer
+  - name: shared
+    paths:
+      - packages/common/
+    description: Shared utilities and types
+
+# Optional: Custom documents beyond the defaults
+documents:
+  - name: runbook
+    template: .codetodocs/templates/runbook.md
+    output: docs/operations/{component}-runbook.md
+    audience: SRE/Operations team
+```
 
 ---
 
@@ -125,6 +189,8 @@ codetodocs/
 ```
 
 **Generated Documentation Layout (User Repo after init + run):**
+
+*Single-component repository:*
 ```text
 my-repo/
 ├── .github/
@@ -139,15 +205,37 @@ my-repo/
 │       ├── product_doc.md
 │       └── ai_context.json
 ├── docs/
-│   ├── technical/       # "How it works"
-│   │   ├── auth.md
-│   │   └── payment.md
-│   ├── product/         # "What it does"
-│   │   ├── auth.md
-│   │   └── payment.md
-│   └── ai/              # "Structure & Facts"
-│       ├── auth.json
-│       └── payment.json
+│   ├── technical/
+│   │   └── my-repo.md       # Single technical doc for entire repo
+│   ├── product/
+│   │   └── my-repo.md       # Single product doc for entire repo
+│   └── ai/
+│       └── my-repo.json     # Single AI context for entire repo
+```
+
+*Multi-component (monorepo) repository:*
+```text
+my-monorepo/
+├── .github/
+│   └── prompts/
+│       └── codetodocs.*.prompt.md
+├── .codetodocs/
+│   ├── config.yaml          # Defines components: frontend, backend, shared
+│   └── templates/
+│       └── ...
+├── docs/
+│   ├── technical/
+│   │   ├── frontend.md      # Technical docs for frontend component
+│   │   ├── backend.md       # Technical docs for backend component
+│   │   └── shared.md        # Technical docs for shared component
+│   ├── product/
+│   │   ├── frontend.md
+│   │   ├── backend.md
+│   │   └── shared.md
+│   └── ai/
+│       ├── frontend.json
+│       ├── backend.json
+│       └── shared.json
 ```
 
 ## 6. Non-Functional Requirements
@@ -175,12 +263,13 @@ my-repo/
 ### Phase 2: The "Crawler" (Zero State)
 * [ ] `codetodocs.run.prompt.md` for full-scan documentation.
 * [ ] File discovery logic in prompt (respecting `.gitignore` + `.codetodocsignore`).
-* [ ] Per-file tri-audience generation instructions.
+* [ ] Component detection and per-component tri-audience generation instructions.
+* [ ] Support for both single-component repos and monorepos with multiple components.
 
 ### Phase 3: The "Updater" (Incremental)
 * [ ] Git diff detection logic in run prompt.
-* [ ] Incremental update mode: only process changed files.
-* [ ] Trivial change detection guidance (skip comment-only / formatting-only).
+* [ ] Incremental update mode: regenerate docs only for components with changed files.
+* [ ] Trivial change detection guidance (skip component regeneration for trivial-only changes).
 
 ### Phase 4: Polish
 * [ ] `codetodocs.status.prompt.md` for documentation coverage reporting.
