@@ -74,7 +74,7 @@ A developer has an existing documentation baseline and has made changes to sourc
 2. **Given** a component with changed files and existing documentation, **When** the agent processes it, **Then** it reads the full component (for context) and the diff (for focus), and the resulting documentation reflects the changes.
 3. **Given** a component where all changes are trivial (comment-only or formatting-only edits), **When** the agent analyzes the diff, **Then** it skips documentation regeneration for that component and reports it as "skipped (trivial changes only)."
 4. **Given** a file was deleted on the current branch but was not the last file in its component, **When** the agent processes the diff, **Then** the component's documentation is regenerated to reflect the removal.
-5. **Given** an entire component's directory was deleted, **When** the agent processes the diff, **Then** the corresponding documentation files are removed or flagged for removal.
+5. **Given** an entire component's directory was deleted, **When** the agent processes the diff, **Then** the corresponding documentation files are flagged for removal by prepending a warning header (e.g., `<!-- ORPHANED: Component directory deleted -->`), but NOT automatically deleted.
 
 ---
 
@@ -89,7 +89,7 @@ A developer wants to see which components in their repository have documentation
 **Acceptance Scenarios**:
 
 1. **Given** a repository with some components documented and some not, **When** the user invokes `/codetodocs.status`, **Then** the agent reports a list of documented components, undocumented components, and documentation coverage percentage.
-2. **Given** a documented component that has been modified since its documentation was last generated, **When** the status command runs, **Then** the component is flagged as "potentially stale."
+2. **Given** a documented component that has been modified since its documentation was last generated, **When** the status command runs, **Then** the component is flagged as "potentially stale" by comparing the embedded generation timestamp against source file modification times.
 
 ---
 
@@ -99,11 +99,11 @@ A developer wants to see which components in their repository have documentation
 - What happens when the target branch specified in config does not exist? The agent should report an error naming the missing branch and suggesting the user check the `target_branch` setting.
 - What happens when a source file is binary (images, compiled assets)? The agent should detect non-text files and skip them, reporting them as skipped.
 - What happens when the repository is extremely large (thousands of files)? The prompt should instruct the agent to process components (not individual files), which bounds the cognitive load per generation.
-- What happens when the configured output directory already contains manually written documentation? The agent should only overwrite files it previously generated (identifiable by a header marker) and leave other files untouched.
+- What happens when the configured output directory already contains manually written documentation? The agent only overwrites files it previously generated (identifiable by the `<!-- CodeToDocs | ... -->` HTML comment header) and leaves other files untouched.
 - What happens when the `.codetodocsignore` file has invalid patterns? The agent should report which patterns are invalid and continue processing with the valid patterns.
 - What happens when the prompt files are missing from `.github/prompts/`? The agent cannot be invoked — the user should run `uvx codetodocs` to install the prompt files, or copy them manually. This is a prerequisite, not a runtime error.
 - What happens when a file belongs to multiple components (overlapping paths)? The agent should report a configuration warning and assign the file to the first matching component.
-- What happens when `components` is defined but a file doesn't match any component path? The agent should either ignore the file or include it in a default "uncategorized" component, based on a config flag.
+- What happens when `components` is defined but a file doesn't match any component path? The agent includes the file in a default "uncategorized" component. Files explicitly excluded by `.gitignore` or `.codetodocsignore` do not trigger warnings.
 - What happens when a custom document template is missing? The agent should report the missing template and skip generating that custom document.
 - What happens when a user wants different output paths for different components? Users can override output paths per component in the `documents` config section.
 
@@ -124,7 +124,7 @@ A developer wants to see which components in their repository have documentation
 - **FR-011**: System MUST work with any AI coding agent that supports prompt files (GitHub Copilot, Cursor, Windsurf, etc.).
 - **FR-012**: The init prompt MUST create a `config.yaml` supporting these settings: `output_dir`, `target_branch`, `components`, and `documents`.
 - **FR-013**: The run prompt MUST instruct the agent to report progress and results (components processed, components skipped, errors encountered).
-- **FR-014**: The run prompt SHOULD instruct the agent to identify and skip trivial changes (comment-only, formatting-only) during incremental updates at the component level.
+- **FR-014**: The run prompt SHOULD instruct the agent to use semantic analysis to determine whether changes are trivial (not warranting documentation regeneration) during incremental updates at the component level — no strict rule is imposed; the agent decides based on whether changes affect documented behavior.
 - **FR-015**: Default template files MUST be included in the prompt instructions or referenced from a known location so the agent can create them during initialization.
 - **FR-016**: The init prompt MUST NOT overwrite an existing `.codetodocs/` directory when invoked on an already-initialized repository.
 - **FR-017**: The AI context JSON template MUST define a schema containing component purpose, key modules, public API signatures, types, configuration schema, and complexity metrics.
@@ -137,6 +137,7 @@ A developer wants to see which components in their repository have documentation
 - **FR-024**: The config MUST support a `components` list where each component specifies `name`, `paths`, and `description`.
 - **FR-025**: The config MUST support a `documents` list for defining custom documents beyond the three defaults, each with `name`, `template`, `output`, and `audience`.
 - **FR-026**: Users MUST be able to override default output paths for technical, product, and AI documents.
+- **FR-027**: Generated documentation files MUST include an HTML comment header with structured metadata (component name, generation timestamp in ISO 8601 format) to identify CodeToDocs-generated files and enable staleness detection. Example: `<!-- CodeToDocs | Component: frontend | Generated: 2026-02-09T14:30:00Z -->`. For JSON files, use a `_codetodocs` metadata object.
 
 ### Key Entities
 
@@ -179,3 +180,13 @@ A developer wants to see which components in their repository have documentation
 - Automated background execution, file watchers, or Git hooks.
 - Web UI or dashboard for viewing generated documentation.
 - Support for editors/environments without AI agent prompt file capabilities.
+
+## Clarifications
+
+### Session 2026-02-09
+
+- Q: What constitutes a "trivial change" for skipping documentation regeneration? → A: Let the agent decide based on semantic analysis (no strict rule).
+- Q: How should files not matching any component path be handled? → A: Include in an "uncategorized" component; no warning for explicitly ignored files.
+- Q: How should the agent determine when documentation was last generated (for staleness detection)? → A: Embed a timestamp comment in each generated doc.
+- Q: What should happen when an entire component's directory is deleted? → A: Flag for removal only (add a warning header to the doc); do not auto-delete.
+- Q: What format should the header marker take for identifying CodeToDocs-generated files? → A: HTML comment with structured metadata (invisible when rendered), e.g., `<!-- CodeToDocs | Component: frontend | Generated: 2026-02-09T14:30:00Z -->`.
