@@ -1,0 +1,168 @@
+# Feature Specification: CodeToDocs Prompt-Driven Agent Tool
+
+**Feature Branch**: `001-local-cli-tool`  
+**Created**: 2026-02-09  
+**Status**: Draft  
+**Input**: User description: "Build the CodeToDocs prompt-driven agent tool with init and run commands, Git diff analysis, and tri-audience documentation generation — implemented entirely as prompt files with no compiled code."
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 0 — One-Command Bootstrap Install (Priority: P0)
+
+A developer discovers CodeToDocs and wants to add it to their existing repository. They run a single command (`uvx codetodocs` or `npx codetodocs`) which copies all prompt files and templates into their repo, so they can immediately invoke `/codetodocs.init`.
+
+**Why this priority**: Without the files in the repo, no agent commands can be invoked. The installer eliminates the manual file-copy step and is the first thing a new user does.
+
+**Independent Test**: Run the installer command in a Git repository with no CodeToDocs files and verify that all expected prompt files and template files are copied into the correct locations.
+
+**Acceptance Scenarios**:
+
+1. **Given** a Git repository with no CodeToDocs files, **When** the user runs `uvx codetodocs`, **Then** the prompt files are copied to `.github/prompts/codetodocs.*.prompt.md` and templates are copied to `.codetodocs/templates/`.
+2. **Given** a repository that already has some or all CodeToDocs files, **When** the user runs the installer, **Then** existing files are NOT overwritten, and the installer reports which files were skipped.
+3. **Given** the installer completes, **When** the user inspects the output, **Then** it lists all files copied and instructs the user to run `/codetodocs.init` next.
+4. **Given** the current directory is not a Git repository, **When** the user runs the installer, **Then** it prints a warning but still copies the files (Git is needed at documentation-generation time, not at install time).
+
+---
+
+### User Story 1 — Repository Initialization (Priority: P1)
+
+A developer copies the CodeToDocs prompt files into their repository and invokes the init command via their AI coding assistant. The agent scaffolds configuration and templates so that the tool is ready to generate documentation on subsequent runs.
+
+**Why this priority**: Without initialization there is no configuration, no templates, and no output directories. Every other command depends on this scaffolding existing first.
+
+**Independent Test**: Invoke the init command in a repository with no `.codetodocs/` directory and verify that the expected directory structure, configuration file, and template files are created with correct defaults.
+
+**Acceptance Scenarios**:
+
+1. **Given** a Git repository with the CodeToDocs prompt files in `.github/prompts/` but no `.codetodocs/` directory, **When** the user invokes `/codetodocs.init`, **Then** a `.codetodocs/` directory is created containing `config.yaml` with default values (`output_dir: docs/`, `target_branch: main`) and a `templates/` subdirectory containing the default technical, product, and AI context template files.
+2. **Given** a Git repository that already has a `.codetodocs/` directory with existing configuration, **When** the user invokes `/codetodocs.init`, **Then** the agent reports that the project is already initialized and does not overwrite existing files.
+3. **Given** the init command completes successfully, **When** the user inspects the agent output, **Then** it includes a summary of all created files and a brief explanation of how to run documentation generation.
+
+---
+
+### User Story 2 — Full-Scan Documentation Generation (Priority: P2)
+
+A developer has just initialized CodeToDocs in their repository and wants to generate documentation for the entire codebase from scratch ("zero state"). They invoke the run command and the agent produces technical, product, and AI context docs for every source file in the repo.
+
+**Why this priority**: Full-scan is the first real value delivery — it creates the initial documentation baseline. Without it, incremental updates have no foundation to build upon.
+
+**Independent Test**: Invoke the run command on an initialized repository with several source files and verify that three documentation artifacts are created per source file in the configured output directory.
+
+**Acceptance Scenarios**:
+
+1. **Given** an initialized repository with source files, **When** the user invokes `/codetodocs.run`, **Then** for each source file the agent creates three artifacts: `docs/technical/{filename}.md`, `docs/product/{filename}.md`, and `docs/ai/{filename}.json`.
+2. **Given** the repository contains files matching patterns in `.gitignore` or `.codetodocsignore`, **When** documentation generation runs, **Then** those files are excluded from processing.
+3. **Given** a source file is processed, **When** the agent generates documentation, **Then** the technical doc contains setup/usage, key functions, edge cases, and dependencies; the product doc contains a feature summary, business rules, and user impact; and the AI context JSON conforms to the schema defined in the template with signatures, types, exports, and complexity scores.
+4. **Given** the generation run encounters issues with a file, **When** the agent processes that file, **Then** it reports the issue and continues processing remaining files.
+5. **Given** the generation run completes, **When** the agent reports results, **Then** a summary is displayed listing successful files, skipped files, and any files with errors.
+
+---
+
+### User Story 3 — Incremental Documentation Update (Priority: P3)
+
+A developer has an existing documentation baseline and has made changes to source files on a feature branch. They invoke the run command and the agent updates only the documentation for changed files, using the Git diff to focus on what actually changed.
+
+**Why this priority**: Incremental updates are the core ongoing value — they keep documentation in sync with code changes without regenerating everything. However, they depend on the full-scan baseline (P2) existing first.
+
+**Independent Test**: Make changes to a tracked source file on a branch, invoke the run command, and verify that only documentation for changed files is updated while unchanged files' docs remain untouched.
+
+**Acceptance Scenarios**:
+
+1. **Given** an initialized repository with existing documentation AND changes on the current branch relative to the target branch, **When** the user invokes `/codetodocs.run`, **Then** the agent identifies only the files that differ between HEAD and the target branch and regenerates documentation only for those files.
+2. **Given** a changed file with existing documentation, **When** the agent processes it, **Then** it reads both the full file content (for context) and the diff (for focus), and the resulting documentation reflects the changes.
+3. **Given** a file has only trivial changes (comment-only or formatting-only edits), **When** the agent analyzes the diff, **Then** it skips documentation regeneration for that file and reports it as "skipped (trivial changes)."
+4. **Given** a file was deleted on the current branch, **When** the agent processes the diff, **Then** the corresponding documentation files are removed or flagged for removal.
+
+---
+
+### User Story 4 — Documentation Coverage Status (Priority: P4)
+
+A developer wants to see which files in their repository have documentation and which are missing or stale. They invoke the status command to get a coverage report.
+
+**Why this priority**: Visibility into documentation gaps helps developers prioritize which files to document next. However, it depends on the generation workflow (P2/P3) existing first.
+
+**Independent Test**: Invoke the status command on a repository with partial documentation and verify that the report accurately lists covered, missing, and potentially stale files.
+
+**Acceptance Scenarios**:
+
+1. **Given** a repository with some files documented and some not, **When** the user invokes `/codetodocs.status`, **Then** the agent reports a list of documented files, undocumented files, and documentation coverage percentage.
+2. **Given** a documented file that has been modified since its documentation was last generated, **When** the status command runs, **Then** the file is flagged as "potentially stale."
+
+---
+
+### Edge Cases
+
+- What happens when the repository has no commits yet? The agent should report a clear error indicating that at least one commit is required for diff-based operations.
+- What happens when the target branch specified in config does not exist? The agent should report an error naming the missing branch and suggesting the user check the `target_branch` setting.
+- What happens when a source file is binary (images, compiled assets)? The agent should detect non-text files and skip them, reporting them as skipped.
+- What happens when the repository is extremely large (thousands of files)? The prompt should instruct the agent to process files in batches and report progress.
+- What happens when the configured output directory already contains manually written documentation? The agent should only overwrite files it previously generated (identifiable by a header marker) and leave other files untouched.
+- What happens when the `.codetodocsignore` file has invalid patterns? The agent should report which patterns are invalid and continue processing with the valid patterns.
+- What happens when the prompt files are missing from `.github/prompts/`? The agent cannot be invoked — the user should run `uvx codetodocs` to install the prompt files, or copy them manually. This is a prerequisite, not a runtime error.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+- **FR-001**: System MUST provide a `/codetodocs.init` prompt command that instructs the agent to scaffold a `.codetodocs/` directory containing `config.yaml` and a `templates/` subdirectory with default template files.
+- **FR-002**: System MUST provide a `/codetodocs.run` prompt command that instructs the agent to generate or update documentation for source files in the repository.
+- **FR-003**: System MUST produce three documentation artifacts per processed source file: a technical Markdown doc, a product Markdown doc, and an AI context JSON file.
+- **FR-004**: The run prompt MUST instruct the agent to read the full content of each source file when generating documentation.
+- **FR-005**: The run prompt MUST instruct the agent to detect changed files by comparing HEAD against the configured target branch using Git diff.
+- **FR-006**: The run prompt MUST instruct the agent to respect `.gitignore` rules when determining which files to process.
+- **FR-007**: The run prompt MUST instruct the agent to respect a `.codetodocsignore` file (if present) for additional exclusion rules beyond `.gitignore`.
+- **FR-008**: Prompt files MUST NOT require any API keys, environment variables, or external credentials — the agent's own authentication handles LLM access.
+- **FR-009**: The run prompt MUST instruct the agent to self-correct if generated output does not conform to the template structure.
+- **FR-010**: The run prompt MUST instruct the agent to continue processing remaining files when documentation generation fails for an individual file, and report all issues at the end.
+- **FR-011**: System MUST work with any AI coding agent that supports prompt files (GitHub Copilot, Cursor, Windsurf, etc.).
+- **FR-012**: The init prompt MUST create a `config.yaml` supporting these settings: `output_dir` and `target_branch`.
+- **FR-013**: The run prompt MUST instruct the agent to report progress and results (files processed, files skipped, errors encountered).
+- **FR-014**: The run prompt SHOULD instruct the agent to identify and skip trivial changes (comment-only, formatting-only) during incremental updates.
+- **FR-015**: Default template files MUST be included in the prompt instructions or referenced from a known location so the agent can create them during initialization.
+- **FR-016**: The init prompt MUST NOT overwrite an existing `.codetodocs/` directory when invoked on an already-initialized repository.
+- **FR-017**: The AI context JSON template MUST define a strict schema containing function/method signatures, types, exports, and complexity scores.
+- **FR-018**: System MUST provide a `/codetodocs.status` prompt command that instructs the agent to report documentation coverage (documented files, undocumented files, potentially stale files).
+- **FR-019**: System MUST provide a bootstrap installer runnable via `uvx codetodocs` (Python) or `npx codetodocs` (Node) that copies all prompt files and templates into the current repository.
+- **FR-020**: The bootstrap installer MUST be idempotent — it MUST NOT overwrite files that already exist in the target repository.
+- **FR-021**: The bootstrap installer MUST report which files were copied and which were skipped (already present).
+- **FR-022**: The bootstrap installer MUST NOT modify any existing files in the target repository.
+
+### Key Entities
+
+- **Source File**: A text-based file tracked by Git in the repository. Attributes: file path, file content, language/type, diff (relative to target branch).
+- **Configuration**: Settings controlling tool behavior. Attributes: output directory path, target branch name. Stored in `.codetodocs/config.yaml`.
+- **Documentation Artifact**: A generated output file. Three types: Technical (Markdown), Product (Markdown), AI Context (JSON). Each is keyed to a specific source file by filename.
+- **Template**: A formatting guide defining the structure of each documentation output type. Stored in `.codetodocs/templates/`. User-customizable.
+- **Prompt Command**: A `.github/prompts/codetodocs.*.prompt.md` file containing agent instructions for a specific operation (init, run, status).
+- **Ignore Rules**: Patterns defining which files to exclude from processing. Sources: `.gitignore` (always respected) and `.codetodocsignore` (optional, additive exclusions).
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Users can go from running a single install command to having a fully initialized configuration by invoking one more agent command (`/codetodocs.init`).
+- **SC-002**: For every source file processed, exactly three documentation artifacts are produced (technical, product, AI context) with no missing outputs.
+- **SC-003**: 90% of documentation generation runs on a typical repository (under 50 source files) produce structurally valid output conforming to the templates.
+- **SC-004**: Incremental documentation updates process only changed files, skipping unchanged files entirely.
+- **SC-005**: The tool works across at least two different AI coding agent platforms (e.g., GitHub Copilot and Cursor) with consistent results.
+- **SC-006**: The tool correctly excludes all files matching `.gitignore` and `.codetodocsignore` patterns, with zero false inclusions.
+- **SC-007**: A developer unfamiliar with CodeToDocs can install and run it (`uvx codetodocs` + invoke init + invoke run) within 5 minutes by following the README alone.
+
+## Assumptions
+
+- The user's repository is a valid Git repository with at least one commit.
+- The user has an AI coding agent (GitHub Copilot, Cursor, Windsurf, etc.) that supports prompt file invocation.
+- Source files are text-based; binary files are out of scope for documentation generation.
+- The agent platform provides built-in tools for reading files, running terminal commands (including `git`), and creating/editing files.
+- LLM access is handled by the agent platform — no separate API keys or provider configuration is needed.
+- Distribution is via a lightweight bootstrap installer (`uvx codetodocs`) that copies files into the repo. Manual file copy is also supported.
+
+## Out of Scope
+
+- GitHub Actions workflow or any CI/CD automation.
+- Standalone CLI binary or compiled code of any kind.
+- Direct LLM API integration (API keys, provider selection, retry logic).
+- Automated background execution, file watchers, or Git hooks.
+- Web UI or dashboard for viewing generated documentation.
+- Multi-repository or monorepo federation support.
+- Support for editors/environments without AI agent prompt file capabilities.

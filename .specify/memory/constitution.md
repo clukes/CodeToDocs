@@ -1,58 +1,76 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: N/A → 1.0.0 (initial creation)
-  Modified principles: N/A (first version)
+  Version change: 1.0.0 → 2.0.0 → 2.1.0
+  Latest change: 2.0.0 → 2.1.0 (MINOR — added bootstrap installer to Principle I and Phase 0)
+  Previous change: 1.0.0 → 2.0.0 (MAJOR — architecture change from Go binary to prompt-driven)
+  Modified principles:
+    - I. "Single Binary, Zero Dependencies" → "Prompt-Driven, Zero Dependencies"
+    - II. "Local-First, Manual Control" — preserved, reworded for agent context
+    - III. "Tri-Audience Output" — preserved unchanged (NON-NEGOTIABLE)
+    - IV. "Git-Native Intelligence" — preserved, agent tools replace go-git
+    - V. "Security by Default" — simplified (no API key management needed)
+    - VI. "Resilience & Performance" — reframed for prompt context
+  Removed sections:
+    - Technical Stack & Constraints (Go-specific table removed entirely)
   Added sections:
-    - Core Principles (6 principles derived from PRD v1.1)
-    - Technical Stack & Constraints
-    - Development Workflow
-    - Governance
-  Removed sections: N/A
+    - Prompt Architecture & Constraints (replaces Technical Stack)
+  Modified sections:
+    - Development Workflow (phases rewritten for prompt authoring)
   Templates requiring updates:
     - .specify/templates/plan-template.md ✅ no update needed (generic)
     - .specify/templates/spec-template.md ✅ no update needed (generic)
     - .specify/templates/tasks-template.md ✅ no update needed (generic)
     - .specify/templates/checklist-template.md ✅ no update needed (generic)
     - .specify/templates/agent-file-template.md ✅ no update needed (generic)
-  Follow-up TODOs: None
+  Follow-up TODOs:
+    - .github/copilot-instructions.md MUST be updated to match
+    - specs/001-local-cli-tool/spec.md MUST be updated to match
 -->
 
 # CodeToDocs Constitution
 
 ## Core Principles
 
-### I. Single Binary, Zero Dependencies
+### I. Prompt-Driven, Zero Dependencies
 
-CodeToDocs MUST be distributed as a single, statically compiled
-Go binary with no external runtime dependencies. Users MUST be
-able to download and run the tool without installing any
-prerequisites (no system Git, no Node.js, no Python, etc.).
+CodeToDocs MUST be implemented entirely as prompt files
+(Markdown) that are copied into a repository. There MUST be
+no compiled code, no binary, no build step, and no runtime
+dependencies **at documentation-generation time**.
 
-- All Git operations MUST use `go-git/v5` (pure Go).
-- All templates MUST be embedded via `go:embed` directives.
-- The binary MUST compile to Windows (`.exe`), macOS
-  (ARM + Intel), and Linux from a single codebase.
+- Distribution is copying `.github/prompts/codetodocs.*.prompt.md`
+  files and `.codetodocs/` templates into a repository.
+- A lightweight **bootstrap installer** (`uvx codetodocs` or
+  `npx codetodocs`) MAY be provided to automate the file-copy
+  step. The installer is a thin script that copies files — it
+  does not participate in documentation generation.
+- The tool MUST work with any AI coding agent that supports
+  prompt files (GitHub Copilot, Cursor, Windsurf, etc.).
+- No programming language, package manager, or build tool is
+  required to **use** CodeToDocs after installation.
 
-**Rationale:** Frictionless adoption is the primary growth lever
-for a developer tool. A single binary eliminates "works on my
-machine" failures and removes installation as a barrier.
+**Rationale:** Prompt files are the simplest possible distribution
+mechanism. A bootstrap installer reduces onboarding friction
+from "manually copy ~10 files" to a single command, without
+violating the zero-dependency principle at runtime. This follows
+the proven SpecKit pattern already in use in this repository.
 
-### II. Local-First, Manual Control
+### II. Agent-Native, Manual Control
 
 The tool MUST NOT run automatically in the background, watch
 file systems, or hook into Git events without explicit user
 invocation. Documentation generation is triggered only by:
 
-- A manual CLI command (`codetodocs run`).
-- An explicit agent invocation (`/codetodocs` or `@codetodocs`).
+- An explicit agent command (`/codetodocs.init`, `/codetodocs.run`).
 
 The tool MUST NOT modify global editor settings, inject itself
 into general AI chat contexts, or persist background processes.
+Each prompt file MUST be a self-contained, isolated command.
 
 **Rationale:** Developers must trust that their tools are
-predictable. Implicit side-effects erode trust and cause
-unexpected LLM costs.
+predictable. Implicit side-effects erode trust. Agent commands
+are inherently explicit — the user types the command.
 
 ### III. Tri-Audience Output (NON-NEGOTIABLE)
 
@@ -67,10 +85,10 @@ documentation artifacts:
    agents/RAG systems; strict JSON schema with signatures, types,
    exports, and complexity scores.
 
-All three artifacts SHOULD be generated from a single LLM call
-per file using Structured Outputs / JSON Mode to minimize latency
-and cost. If a single-call approach fails, the system MUST fall
-back to individual calls rather than omitting any artifact.
+The prompt instructions MUST guide the agent to generate all
+three artifacts for each file. If any artifact cannot be
+generated for a file, the agent MUST report it rather than
+silently skipping.
 
 **Rationale:** This is the core value proposition. Each audience
 has fundamentally different needs; a single doc format serves
@@ -78,95 +96,112 @@ none of them well.
 
 ### IV. Git-Native Intelligence
 
-The tool MUST integrate deeply with Git as its primary source of
-change detection and context:
+The tool MUST leverage Git as its primary source of change
+detection and context:
 
 - Diff analysis MUST compare `HEAD` against a configurable target
-  branch (default: `main`).
-- The tool MUST read full file content (for context) alongside
-  the diff (for focus) when generating updates.
-- The tool MUST respect `.gitignore` and a custom
-  `.codetodocsignore` file for exclusion rules.
-- Trivial changes (comment-only, formatting-only) SHOULD be
-  detected and skipped to avoid unnecessary LLM calls.
+  branch (default: `main`) using the agent's Git tools or
+  terminal commands.
+- The prompt MUST instruct the agent to read full file content
+  (for context) alongside the diff (for focus) when generating
+  updates.
+- The prompt MUST instruct the agent to respect `.gitignore` and
+  a custom `.codetodocsignore` file for exclusion rules.
+- The prompt SHOULD instruct the agent to identify and skip
+  trivial changes (comment-only, formatting-only).
 
 **Rationale:** Git is the universal source of truth for code
 changes. Leveraging diffs enables incremental documentation
-updates that are both cheaper and more accurate than full rescans.
+updates that are more accurate than full rescans.
 
 ### V. Security by Default
 
-- API keys MUST NEVER be stored in configuration files
-  (`.codetodocs/config.yaml` or any other committed file).
-- API keys MUST only be read from environment variables
-  (e.g., `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`).
-- The tool MUST NOT log, print, or transmit API keys in any
-  output (stdout, stderr, log files, error messages).
+- No API keys are managed by CodeToDocs. The agent's own
+  authentication handles LLM access.
+- Prompt files MUST NOT instruct the agent to read, store, or
+  transmit any secrets or credentials.
+- Configuration files (`.codetodocs/config.yaml`) MUST NOT
+  contain any sensitive data — only structural settings
+  (output directory, target branch).
 
-**Rationale:** A developer tool that leaks secrets to version
-control is a liability. Environment-variable-only key management
-is the industry-standard minimum.
+**Rationale:** By delegating LLM access to the agent platform,
+CodeToDocs eliminates the entire category of API key management
+security concerns.
 
-### VI. Resilience & Performance
+### VI. Determinism & Resilience
 
-- The CLI MUST start in under 50 milliseconds.
-- If an LLM returns invalid JSON, the tool MUST automatically
-  retry up to 3 times before reporting failure.
+- Prompt instructions MUST be specific enough to produce
+  consistent output structure across different agent models
+  and invocations.
+- Templates in `.codetodocs/templates/` MUST define the exact
+  structure and sections expected in each output type.
+- If the agent produces output that doesn't match the expected
+  structure, the prompt SHOULD instruct the agent to self-correct.
 - Failures in one file's documentation MUST NOT halt processing
-  of remaining files; errors MUST be collected and reported at
-  the end of the run.
-- The `init` command MUST complete full repo setup in under
-  5 seconds.
+  of remaining files; the prompt MUST instruct the agent to
+  report errors and continue.
 
-**Rationale:** Developer tools that are slow or brittle get
-uninstalled. Graceful degradation ensures partial progress is
-never lost.
+**Rationale:** Prompt-driven tools must compensate for LLM
+non-determinism with precise structural templates and clear
+validation instructions.
 
-## Technical Stack & Constraints
+## Prompt Architecture & Constraints
 
-The following technology choices are binding for the project:
+The following conventions are binding for the project:
 
-| Component       | Choice                          | Locked? |
-|-----------------|---------------------------------|---------|
-| Language        | Go 1.22+                        | Yes     |
-| CLI Framework   | `spf13/cobra`                   | Yes     |
-| Configuration   | `spf13/viper` (YAML + Env)      | Yes     |
-| Git Library     | `go-git/v5`                     | Yes     |
-| TUI / Styling   | `charmbracelet/lipgloss` + `bubbletea` | Yes |
-| LLM Client      | `net/http` or `tmc/langchaingo` | Flexible |
-| LLM Providers   | OpenAI, Anthropic, Ollama       | Extensible |
+| Component         | Convention                                     |
+|-------------------|------------------------------------------------|
+| Prompt location   | `.github/prompts/codetodocs.*.prompt.md`       |
+| Config location   | `.codetodocs/config.yaml`                      |
+| Template location | `.codetodocs/templates/`                       |
+| Output location   | Configurable via `output_dir` (default: `docs/`) |
+| Naming pattern    | `codetodocs.<command>.prompt.md`               |
 
-- All configuration MUST live in `.codetodocs/config.yaml`.
-- The project MUST follow the directory layout defined in the
-  PRD (§5.2): `cmd/`, `internal/`, `templates/`.
-- New dependencies MUST be justified against the Single Binary
-  principle (Principle I). CGo dependencies are prohibited unless
-  no pure-Go alternative exists and the dependency is critical.
+**Prompt file conventions:**
+- Each prompt file MUST be self-contained with all instructions
+  needed for the agent to execute the command.
+- Prompts MUST reference `.codetodocs/config.yaml` for runtime
+  configuration (output directory, target branch).
+- Prompts MUST reference `.codetodocs/templates/` for output
+  structure definitions.
+- Prompts MUST NOT depend on any external tooling, scripts, or
+  binaries beyond what the agent platform provides natively.
+
+**Configuration schema:**
+```yaml
+# .codetodocs/config.yaml
+output_dir: docs/          # Where generated docs are written
+target_branch: main        # Branch to diff against for incremental updates
+```
 
 ## Development Workflow
 
 Development follows a phased approach aligned with the PRD
 milestones:
 
-1. **Phase 1 — Constitution (MVP):** Go module setup, CLI
-   skeleton, `init` command with template and config injection.
-2. **Phase 2 — Crawler (Zero State):** File system walker
-   (respecting ignore rules), full-scan documentation generation,
-   "State of the World" LLM prompts.
-3. **Phase 3 — Updater (Incremental):** Git diff triggers,
-   comparison logic (Old Doc + New Code → New Doc), trivial
-   change detection and skip optimization.
-4. **Phase 4 — Distribution:** GitHub Action / Dockerfile,
-   Homebrew Tap, cross-platform release binaries.
+0. **Phase 0 — Installer (Bootstrap):** Python package for
+   `uvx codetodocs`, idempotent file-copy script.
+1. **Phase 1 — Constitution (MVP):** Prompt file structure,
+   `codetodocs.init.prompt.md`, default templates, config schema.
+2. **Phase 2 — Crawler (Zero State):** `codetodocs.run.prompt.md`
+   for full-scan documentation, file discovery instructions,
+   per-file tri-audience generation.
+3. **Phase 3 — Updater (Incremental):** Git diff detection in
+   run prompt, incremental update mode, trivial change skip
+   guidance.
+4. **Phase 4 — Polish:** `codetodocs.status.prompt.md` for
+   coverage reporting, prompt refinement for consistency,
+   user documentation and README.
 
 **Quality gates for each phase:**
 
-- All new code MUST have corresponding tests.
+- Prompt files MUST be tested by invoking them in at least two
+  different agent platforms (e.g., Copilot + Cursor) to verify
+  consistent behavior.
 - All three documentation output types (Principle III) MUST be
-  validated with snapshot or golden-file tests once Phase 2 is
-  reached.
-- CLI commands MUST be tested with integration tests exercising
-  real (or in-memory) Git repositories via `go-git/v5`.
+  validated against the template structures after generation.
+- Each prompt command MUST be tested on at least one real
+  repository with multiple source files.
 
 ## Governance
 
@@ -188,4 +223,4 @@ PR discussions, and verbal agreements.
 - **Runtime guidance:** See the agent-file-template for
   development guidelines that operationalize these principles.
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-09 | **Last Amended**: 2026-02-09
+**Version**: 2.1.0 | **Ratified**: 2026-02-09 | **Last Amended**: 2026-02-09

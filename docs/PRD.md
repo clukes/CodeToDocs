@@ -2,18 +2,18 @@
 
 | **Project Name** | **CodeToDocs** |
 | :--- | :--- |
-| **Version** | 1.1 (Refined) |
+| **Version** | 2.0 (Prompt-Driven) |
 | **Status** | Draft |
-| **Type** | Developer Tool / CLI |
-| **Language** | Go (Golang) |
+| **Type** | Developer Tool / Agent Prompts |
+| **Implementation** | Prompt files (Markdown) — no compiled code |
 | **License** | Open Source (MIT/Apache 2.0) |
 
 ---
 
 ## 1. Executive Summary
-**CodeToDocs** is an open-source, local-first CLI tool designed to solve the "stale documentation" problem in modern software development. It automates the maintenance of documentation by analyzing **Git diffs** and using Large Language Models (LLMs) to generate updates.
+**CodeToDocs** is an open-source, prompt-driven tool designed to solve the "stale documentation" problem in modern software development. It automates the maintenance of documentation by analyzing **Git diffs** and using AI coding agents (GitHub Copilot, Cursor, etc.) to generate updates.
 
-The tool is distributed as a **single, static binary** (zero dependencies) to ensure a seamless developer experience.
+The tool is distributed as a **set of prompt files** (`.md`) that are copied into any repository — zero compiled code, zero build step. A lightweight bootstrap installer (`uvx codetodocs` or `npx codetodocs`) automates copying these files into any repo with a single command. It follows the same pattern as SpecKit: agent prompt files that orchestrate documentation generation through the AI assistant already available in the developer's editor.
 
 ---
 
@@ -29,25 +29,24 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 ---
 
 ## 3. User Experience (UX) Goals
-* **Zero-Config Start:** A user must be able to download the binary and run `codetodocs init` to fully configure their repo in < 5 seconds.
-* **Manual Control:** The tool does **not** run automatically in the background. It is triggered manually by the developer (`codetodocs run`) or via a specific agent command.
-* **Custom Agent Integration:** The tool is designed to be invoked as a distinct capability (e.g., `/codetodocs` or `@codetodocs`), similar to how `/speckit` works. It does not implicitly pollute general chat contexts.
+* **One-Command Setup:** A user must be able to run `uvx codetodocs` (or `npx codetodocs`) in any repo to copy all prompt files and templates, then invoke `/codetodocs.init` to configure.
+* **Manual Control:** The tool does **not** run automatically in the background. It is triggered manually by the developer via a specific agent command (e.g., `/codetodocs.run`).
+* **Native Agent Integration:** The tool IS an agent command — no separate binary, no bridge layer. It works wherever the developer's AI assistant works (VS Code + Copilot, Cursor, etc.).
 
 ---
 
 ## 4. Core Functional Requirements
 
-### 4.1. Initialization (`init` command)
-* **Goal:** Establish the "Constitution" of the repository.
+### 4.1. Initialization (`/codetodocs.init` command)
+* **Goal:** Establish the configuration and templates for the repository.
 * **Behavior:**
     * Check for the existence of `.codetodocs/`.
-    * **Eject Templates:** Extract embedded default templates (Human Markdown, AI JSON, Config YAML) into `.codetodocs/templates/` to allow user customization.
-    * **Setup:** Initialize the `.codetodocs/config.yaml` with sensible defaults.
-* **UX:** Display a spinner during setup and a success checkmark upon completion (using `bubbletea`).
-* **Agent Output:** Instead of modifying global instructions, output a success message telling the user how to register the tool as a custom agent or alias (e.g., *"To use with Copilot, add this alias..."*).
+    * **Create Templates:** Write default templates (Technical Markdown, Product Markdown, AI JSON) into `.codetodocs/templates/` to allow user customization.
+    * **Setup:** Create `.codetodocs/config.yaml` with sensible defaults.
+* **UX:** The agent confirms each step and reports completion with a summary of created files.
 
 ### 4.2. Git Integration
-* **Diff Analysis:** The tool must identify changed files between `HEAD` and a target branch (default: `main`).
+* **Diff Analysis:** The agent must identify changed files between `HEAD` and a target branch (default: `main`) using Git commands or agent tools.
 * **Context Awareness:**
     * It must read the **full content** of the changed file (for context) and the **diff** (for focus).
     * It must respect `.gitignore` and a custom `.codetodocsignore`.
@@ -58,7 +57,7 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 
 **Trigger & Processing:**
 * **Input:** Source code content + Git Diff (if updating).
-* **Optimization:** The system should ideally use a **single LLM call** per file to generate all three outputs simultaneously (using Structured Outputs/JSON Mode) to reduce latency and cost.
+* **Processing:** The agent reads each file, applies the prompt instructions, and generates all three outputs per file.
 
 **Output 1: Technical Docs (Target: Engineers)**
 * **Location:** `docs/technical/{filename}.md`
@@ -74,7 +73,7 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 * **Focus:** Business value, "What does this actually do for the user/business?"
 * **Content:**
     * **Feature Summary:** High-level description of functionality in plain English (no code).
-    * **Business Rules:** specific logic that impacts the business (e.g., "Users must be verified to see X").
+    * **Business Rules:** Specific logic that impacts the business (e.g., "Users must be verified to see X").
     * **User Impact:** How changes in this file affect the end-user experience.
 
 **Output 3: AI Context (Target: Agents/RAG)**
@@ -82,11 +81,10 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 * **Focus:** Machine-readable structural facts.
 * **Content:**
     * Strict JSON schema containing signatures, types, exports, and complexity scores.
+
 ### 4.4. Configuration
 * **File:** `.codetodocs/config.yaml`.
 * **Settings:**
-    * `provider`: (openai | anthropic | ollama)
-    * `model`: (gpt-4o, claude-3.5-sonnet, llama-3)
     * `output_dir`: (default: `docs/`)
     * `target_branch`: (default: `main`)
 
@@ -95,38 +93,51 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 ## 5. Technical Architecture
 
 ### 5.1. Stack
-* **Language:** Go (1.22+) - chosen for speed, type safety, and single-binary distribution.
-* **CLI Framework:** `spf13/cobra` (Command routing).
-* **Configuration:** `spf13/viper` (YAML/Env parsing).
-* **Git:** `go-git/v5` (Native Git implementation; no system git dependency).
-* **TUI:** `charmbracelet/lipgloss` (Styling) & `bubbletea` (Interactivity).
-* **LLM Client:** Standard `net/http` or `tmc/langchaingo`.
+* **Implementation:** Prompt files (Markdown) — no compiled language.
+* **Bootstrap Installer:** Lightweight Python package (via `uvx`) or Node package (via `npx`) that copies files into the target repo. The installer is a thin file-copy script — it does not run at documentation-generation time.
+* **Execution Environment:** Any AI coding agent (GitHub Copilot, Cursor, Windsurf, etc.).
+* **Git:** Agent's built-in Git tools or terminal `git` commands.
+* **LLM:** The agent's own model — no separate API keys or LLM client needed.
+* **Inspiration:** SpecKit (`.github/prompts/speckit.*.prompt.md`).
 
 ### 5.2. File Structure
 
-**Project Layout:**
+**Project Layout (CodeToDocs itself):**
 ```text
 codetodocs/
-├── cmd/
-│   └── root.go          # Entry point (Cobra)
-├── internal/
-│   ├── config/          # Viper config loader
-│   ├── git/             # Diff logic & File reading
-│   ├── llm/             # API Client Adapters
-│   ├── generator/       # Core Logic (Prompting & File Writing)
-│   ├── templates/       # Embedded assets (go:embed)
-│   └── tui/             # Lipgloss styles & Spinners
-└── templates/           # Raw source files to embed
-    ├── technical_doc.md # Template for Engineering docs
-    ├── product_doc.md   # Template for PM docs
-    ├── ai_context.json  # Template for AI docs
-    └── agent_instructions.md
+├── installer/
+│   ├── pyproject.toml               # Python package config (for uvx)
+│   ├── package.json                  # Node package config (for npx)
+│   └── codetodocs_install.py         # Installer script: copies files into target repo
+├── files/                            # Source files that get copied into user repos
+│   ├── .github/
+│   │   └── prompts/
+│   │       ├── codetodocs.init.prompt.md
+│   │       ├── codetodocs.run.prompt.md
+│   │       └── codetodocs.status.prompt.md
+│   └── .codetodocs/
+│       └── templates/
+│           ├── technical_doc.md
+│           ├── product_doc.md
+│           └── ai_context.json
+└── docs/
+    └── PRD.md
 ```
 
-**Generated Documentation Layout (User Repo):**
+**Generated Documentation Layout (User Repo after init + run):**
 ```text
 my-repo/
-├── .codetodocs/         # Configuration & Templates
+├── .github/
+│   └── prompts/
+│       ├── codetodocs.init.prompt.md
+│       ├── codetodocs.run.prompt.md
+│       └── codetodocs.status.prompt.md
+├── .codetodocs/
+│   ├── config.yaml
+│   └── templates/
+│       ├── technical_doc.md
+│       ├── product_doc.md
+│       └── ai_context.json
 ├── docs/
 │   ├── technical/       # "How it works"
 │   │   ├── auth.md
@@ -140,29 +151,38 @@ my-repo/
 ```
 
 ## 6. Non-Functional Requirements
-1.  **Performance:** The CLI must start in < 50ms.
-2.  **Portability:** Must compile to Windows (`.exe`), macOS (ARM/Intel), and Linux.
-3.  **Security:** API Keys must **never** be stored in `config.yaml`. They must only be read from Environment Variables (`OPENAI_API_KEY`).
-4.  **Reliability:** If the LLM returns invalid JSON, the tool must retry automatically (up to 3 times).
+1.  **Portability:** Must work with any AI coding agent that supports prompt files (VS Code + Copilot, Cursor, etc.).
+2.  **Security:** No API keys are managed by this tool — the agent's own authentication handles LLM access.
+3.  **Determinism:** Prompt instructions MUST be specific enough to produce consistent output structure across different agent models and invocations.
+4.  **One-Command Install:** `uvx codetodocs` or `npx codetodocs` must copy all files into the current repo in under 5 seconds. The installer must not modify any existing files.
+5.  **Simplicity:** The installer is a thin file-copy script. The actual documentation logic lives entirely in prompt files.
 
 ---
 
 ## 7. Milestones
 
+### Phase 0: The "Installer" (Bootstrap)
+* [ ] Python package with `pyproject.toml` for `uvx codetodocs`.
+* [ ] Node package with `package.json` for `npx codetodocs` (optional alternative).
+* [ ] Installer script that copies prompt files + templates into the current repo.
+* [ ] Idempotent: skip files that already exist, never overwrite.
+
 ### Phase 1: The "Constitution" (MVP)
-* [ ] Go module setup & CLI skeleton.
-* [ ] `init` command (Templates & Config injection).
+* [ ] Prompt file structure and `codetodocs.init.prompt.md`.
+* [ ] Default templates (technical, product, AI context).
+* [ ] `config.yaml` schema and defaults.
 
 ### Phase 2: The "Crawler" (Zero State)
-* [ ] Implement file system walker (respecting `.gitignore`).
-* [ ] Create "Full Scan" logic to document the entire repo from scratch.
-* [ ] specific "State of the World" LLM prompts (ignoring diffs, focusing on absolute state).
+* [ ] `codetodocs.run.prompt.md` for full-scan documentation.
+* [ ] File discovery logic in prompt (respecting `.gitignore` + `.codetodocsignore`).
+* [ ] Per-file tri-audience generation instructions.
 
 ### Phase 3: The "Updater" (Incremental)
-* [ ] Implement Git Diff triggers.
-* [ ] Create "Comparison Logic": (Old Doc + New Code) -> New Doc.
-* [ ] Optimization: Skip LLM calls for trivial changes (comments/formatting).
+* [ ] Git diff detection logic in run prompt.
+* [ ] Incremental update mode: only process changed files.
+* [ ] Trivial change detection guidance (skip comment-only / formatting-only).
 
-### Phase 4: Distribution
-* [ ] GitHub Action (Dockerfile).
-* [ ] Homebrew Tap.
+### Phase 4: Polish
+* [ ] `codetodocs.status.prompt.md` for documentation coverage reporting.
+* [ ] Refinement of prompt instructions for output consistency.
+* [ ] User documentation and README.
