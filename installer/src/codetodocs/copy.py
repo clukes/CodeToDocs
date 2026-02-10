@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import filecmp
 import importlib.resources
 import shutil
 import subprocess
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple
+
+from codetodocs import __version__
+
+VERSION_FILE = ".codetodocs/.version"
 
 
 class ManifestEntry(NamedTuple):
@@ -51,7 +57,11 @@ class CopyResult:
 
     copied: list[str] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)
+    updated: list[str] = field(default_factory=list)
     overwritten: list[str] = field(default_factory=list)
+    backup_dir: Path | None = None
+    previous_version: str | None = None
+    installed_version: str = field(default_factory=lambda: __version__)
 
 
 def is_git_repo(path: Path) -> bool:
@@ -84,6 +94,30 @@ def get_asset_path(relative: str) -> Path:
     return Path(str(package_root / relative))
 
 
+def _create_backup_dir(target_dir: Path) -> Path:
+    """Create and return a timestamped backup directory.
+
+    Directory is created at ``.codetodocs/backups/<YYYYMMDD_HHMMSS>/``
+    inside *target_dir*.
+    """
+    timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
+    backup_dir = target_dir / ".codetodocs" / "backups" / timestamp
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    return backup_dir
+
+
+def _backup_file(
+    target_path: Path,
+    target_dir: Path,
+    backup_dir: Path,
+    relative_target: str,
+) -> None:
+    """Copy *target_path* into *backup_dir* preserving the relative path."""
+    backup_path = backup_dir / relative_target
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(target_path, backup_path)
+
+
 def copy_assets(
     target_dir: Path,
     force: bool = False,
@@ -91,21 +125,38 @@ def copy_assets(
 ) -> CopyResult:
     """Copy every asset in :data:`ASSET_MANIFEST` into *target_dir*.
 
+    Default behaviour (``force=False``):
+        * New files are copied.
+        * Existing files with **identical** content are skipped.
+        * Existing files with **different** content are backed up to
+          ``.codetodocs/backups/<timestamp>/`` and then overwritten with
+          the latest version.
+
+    Force behaviour (``force=True``):
+        * All files are overwritten without creating backups.
+
     Parameters
     ----------
     target_dir:
         Root of the repository to install into.
     force:
-        When ``True``, overwrite files that already exist.
+        When ``True``, overwrite all files without backing up.
     dry_run:
         When ``True``, classify files without writing anything.
 
     Returns
     -------
     CopyResult
-        Lists of copied, skipped, and overwritten relative paths.
+        Lists of copied, skipped, updated, and overwritten relative paths,
+        plus the backup directory (if any backups were created).
     """
     result = CopyResult()
+    backup_dir: Path | None = None
+
+    # Read previously installed version (if any)
+    version_path = target_dir / VERSION_FILE
+    if version_path.exists():
+        result.previous_version = version_path.read_text().strip()
 
     for entry in ASSET_MANIFEST:
         source_path = get_asset_path(entry.source)
@@ -113,15 +164,31 @@ def copy_assets(
 
         if target_path.exists():
             if force:
+                # Force mode: overwrite without backup
                 if not dry_run:
                     shutil.copy2(source_path, target_path)
                 result.overwritten.append(entry.target)
-            else:
+            elif filecmp.cmp(source_path, target_path, shallow=False):
+                # Content identical: nothing to do
                 result.skipped.append(entry.target)
+            else:
+                # Content differs: backup then update
+                if not dry_run:
+                    if backup_dir is None:
+                        backup_dir = _create_backup_dir(target_dir)
+                    _backup_file(target_path, target_dir, backup_dir, entry.target)
+                    shutil.copy2(source_path, target_path)
+                result.updated.append(entry.target)
         else:
             if not dry_run:
                 target_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source_path, target_path)
             result.copied.append(entry.target)
 
+    # Write current version marker
+    if not dry_run:
+        version_path.parent.mkdir(parents=True, exist_ok=True)
+        version_path.write_text(__version__ + "\n")
+
+    result.backup_dir = backup_dir
     return result

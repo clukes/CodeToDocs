@@ -31,7 +31,7 @@ def main() -> None:
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Overwrite existing files",
+        help="Overwrite existing files without creating backups",
     )
     parser.add_argument(
         "--dry-run",
@@ -56,7 +56,12 @@ def main() -> None:
         )
 
         # --- Header ---
-        print(f"CodeToDocs v{__version__}")
+        if result.previous_version and result.previous_version != __version__:
+            print(f"CodeToDocs v{result.previous_version} \u2192 v{__version__}")
+        elif result.previous_version:
+            print(f"CodeToDocs v{__version__} (reinstall)")
+        else:
+            print(f"CodeToDocs v{__version__}")
         print()
 
         # --- Copied ---
@@ -64,19 +69,33 @@ def main() -> None:
         print(_format_file_list(result.copied))
         print()
 
-        # --- Overwritten / Skipped ---
+        # --- Updated (backed up + overwritten) ---
+        if result.updated:
+            print("Updated (previous versions backed up):")
+            print(_format_file_list(result.updated))
+            print()
+
+        # --- Force-overwritten ---
         if args.force and result.overwritten:
-            print("Overwritten:")
+            print("Overwritten (no backup):")
             print(_format_file_list(result.overwritten))
-        else:
-            print("Skipped (already exist):")
+            print()
+
+        # --- Skipped (identical) ---
+        if result.skipped:
+            print("Skipped (already up to date):")
             print(_format_file_list(result.skipped))
-        print()
+            print()
+
+        # --- Backup location ---
+        if result.backup_dir:
+            print(f"Backups saved to: {result.backup_dir.relative_to(target_dir)}")
+            print()
 
         # --- Summary ---
-        total_copied = len(result.copied)
-        total_skipped = len(result.skipped) + len(result.overwritten)
-        print(f"\u2713 {total_copied} file(s) copied, {total_skipped} skipped")
+        total_changed = len(result.copied) + len(result.updated) + len(result.overwritten)
+        total_skipped = len(result.skipped)
+        print(f"\u2713 {total_changed} file(s) installed, {total_skipped} already up to date")
         print()
 
         # --- Warnings ---
