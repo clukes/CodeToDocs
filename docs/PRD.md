@@ -89,14 +89,13 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
     * **Configuration & Policies:** Business-relevant settings and constraints.
 
 **Output 3: AI Context (Target: Agents/RAG)**
-* **Location:** `docs/ai/{component}.json` (default) or custom path
+* **Location:** `docs/ai/{component}.yaml` (default) or custom path
 * **Focus:** Machine-readable structural facts for the entire component.
 * **Content:**
     * Component purpose and responsibilities.
     * Key modules, classes, and their relationships.
     * Public API signatures and types.
     * Configuration schema.
-    * Complexity and dependency metrics.
 
 ### 4.4. Configuration
 * **File:** `.codetodocs/config.yaml`.
@@ -183,7 +182,7 @@ codetodocs/
 │       └── templates/
 │           ├── technical_doc.md
 │           ├── product_doc.md
-│           └── ai_context.json
+│           └── ai_context.yaml
 └── docs/
     └── PRD.md
 ```
@@ -203,14 +202,14 @@ my-repo/
 │   └── templates/
 │       ├── technical_doc.md
 │       ├── product_doc.md
-│       └── ai_context.json
+│       └── ai_context.yaml
 ├── docs/
 │   ├── technical/
 │   │   └── my-repo.md       # Single technical doc for entire repo
 │   ├── product/
 │   │   └── my-repo.md       # Single product doc for entire repo
 │   └── ai/
-│       └── my-repo.json     # Single AI context for entire repo
+│       └── my-repo.yaml     # Single AI context for entire repo
 ```
 
 *Multi-component (monorepo) repository:*
@@ -233,9 +232,9 @@ my-monorepo/
 │   │   ├── backend.md
 │   │   └── shared.md
 │   └── ai/
-│       ├── frontend.json
-│       ├── backend.json
-│       └── shared.json
+│       ├── frontend.yaml
+│       ├── backend.yaml
+│       └── shared.yaml
 ```
 
 ## 6. Non-Functional Requirements

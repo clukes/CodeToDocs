@@ -23,7 +23,7 @@ CodeToDocs is implemented entirely as prompt files following the SpecKit pattern
 └── templates/
     ├── technical_doc.md         # Template for engineer-facing docs
     ├── product_doc.md           # Template for PM-facing docs
-    └── ai_context.json          # Schema/template for AI-facing JSON
+    └── ai_context.yaml          # Schema/template for AI-facing YAML
 ```
 
 **Key design decisions:**
@@ -39,14 +39,14 @@ CodeToDocs is implemented entirely as prompt files following the SpecKit pattern
 ```
 docs/technical/{repo-name}.md   # Engineer-facing: purpose, architecture, setup, config, APIs
 docs/product/{repo-name}.md     # PM-facing: features, business rules, user impact
-docs/ai/{repo-name}.json        # Agent-facing: structured JSON (modules, signatures, config schema)
+docs/ai/{repo-name}.yaml        # Agent-facing: structured YAML (modules, signatures, config schema)
 ```
 
 **Generated documentation layout in user repos (multi-component monorepo):**
 ```
 docs/technical/{component}.md   # One per component (e.g., frontend.md, backend.md)
 docs/product/{component}.md     # One per component
-docs/ai/{component}.json        # One per component
+docs/ai/{component}.yaml        # One per component
 ```
 
 ## Prompt File Conventions

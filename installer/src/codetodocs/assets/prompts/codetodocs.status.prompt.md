@@ -51,7 +51,7 @@ Look for the **default artifacts that are not excluded** by `exclude_defaults`:
 |----------|------|-------------|
 | Technical doc | `{output_dir}/technical/{component-name}.md` | `exclude_defaults` contains `technical` |
 | Product doc | `{output_dir}/product/{component-name}.md` | `exclude_defaults` contains `product` |
-| AI context | `{output_dir}/ai/{component-name}.json` | `exclude_defaults` contains `ai_context` |
+| AI context | `{output_dir}/ai/{component-name}.yaml` | `exclude_defaults` contains `ai_context` |
 
 Skip checking for any artifact type listed in `exclude_defaults` — do not count it as missing.
 
@@ -69,7 +69,7 @@ For each artifact that **exists**, extract its generation timestamp:
   ```
   Extract the `Generated:` value.
 
-- **JSON files** (`.json`): Read the file and extract the value at `_codetodocs.generated`.
+- **YAML files** (`.yaml`): Read the file and extract the value at `_codetodocs.generated`.
 
 If the header marker is missing or cannot be parsed, treat the artifact as "exists but unknown age" — skip the staleness check for that specific artifact.
 

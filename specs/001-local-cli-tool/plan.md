@@ -13,7 +13,7 @@ Build the complete CodeToDocs prompt-driven agent tool: a bootstrap installer (`
 
 **Language/Version**: Python 3.10+ (bootstrap installer only); Markdown (prompt files — runtime)  
 **Primary Dependencies**: None at runtime; `shutil`, `pathlib`, `importlib.resources` for installer  
-**Storage**: File system only — YAML config, Markdown/JSON templates, Markdown/JSON output  
+**Storage**: File system only — YAML config, Markdown/YAML templates, Markdown/YAML output  
 **Testing**: Manual invocation across 2+ agent platforms (Copilot, Cursor); pytest for installer  
 **Target Platform**: Any OS with Git and an AI coding agent  
 **Project Type**: Single project — hybrid (Python package for installer + Markdown prompt files)  
@@ -29,10 +29,10 @@ Build the complete CodeToDocs prompt-driven agent tool: a bootstrap installer (`
 |---|-----------|------------|-------------|-------|
 | I | Prompt-Driven, Zero Dependencies | PASS | PASS | Prompt files are pure Markdown; installer is a thin file-copy script with no runtime participation. Design confirms: `installer/` is a Python package that copies files only — it does not participate in doc generation. |
 | II | Agent-Native, Manual Control | PASS | PASS | All three commands (`init`, `run`, `status`) require explicit user invocation. No watchers, hooks, or background processes in any contract. |
-| III | Tri-Audience Output (NON-NEGOTIABLE) | PASS | PASS | Every component produces exactly three artifacts: `technical/{component}.md`, `product/{component}.md`, `ai/{component}.json`. Confirmed in data model + prompt command contracts. |
+| III | Tri-Audience Output (NON-NEGOTIABLE) | PASS | PASS | Every component produces exactly three artifacts: `technical/{component}.md`, `product/{component}.md`, `ai/{component}.yaml`. Confirmed in data model + prompt command contracts. |
 | IV | Git-Native Intelligence | PASS | PASS | Run command diffs against `target_branch`; reads full files + diffs; respects `.gitignore` + `.codetodocsignore`. Incremental mode confirmed in contracts. |
 | V | Security by Default | PASS | PASS | No API keys anywhere. Config contains only `output_dir`, `target_branch`, `components`, `documents`. Prompts never touch credentials. |
-| VI | Determinism & Resilience | PASS | PASS | Templates define exact structure (technical, product, AI context JSON schema). Self-correction instruction in run prompt. Component-level error isolation confirmed. |
+| VI | Determinism & Resilience | PASS | PASS | Templates define exact structure (technical, product, AI context YAML schema). Self-correction instruction in run prompt. Component-level error isolation confirmed. |
 
 **Gate result: PASS** — No violations pre- or post-design.
 
@@ -70,7 +70,7 @@ installer/
 │           └── templates/
 │               ├── technical_doc.md
 │               ├── product_doc.md
-│               └── ai_context.json
+│               └── ai_context.yaml
 └── tests/
     ├── test_cli.py
     ├── test_copy.py
@@ -88,7 +88,7 @@ installer/
 └── templates/
     ├── technical_doc.md
     ├── product_doc.md
-    └── ai_context.json
+    └── ai_context.yaml
 ```
 
 **Structure Decision**: Hybrid — a Python package under `installer/` for the bootstrap CLI, plus prompt files and templates at the repo root for development and testing. The installer bundles the prompt files and templates as package assets.

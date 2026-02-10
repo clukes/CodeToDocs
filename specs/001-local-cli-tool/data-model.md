@@ -67,7 +67,7 @@ A generated output file. Not persisted as a data model — exists as a file on d
 |------|----------|-------------|--------|
 | Technical | `.codetodocs/templates/technical_doc.md` | `{output_dir}/technical/{component}.md` | Markdown |
 | Product | `.codetodocs/templates/product_doc.md` | `{output_dir}/product/{component}.md` | Markdown |
-| AI Context | `.codetodocs/templates/ai_context.json` | `{output_dir}/ai/{component}.json` | JSON |
+| AI Context | `.codetodocs/templates/ai_context.yaml` | `{output_dir}/ai/{component}.yaml` | YAML |
 
 ### 5. Template
 
@@ -77,7 +77,7 @@ A structural guide defining expected output format. User-customizable.
 |---------------|-----------------|
 | `technical_doc.md` | Purpose, Architecture, Setup/Installation, Running, Configuration, Key APIs, Edge Cases, Dependencies |
 | `product_doc.md` | Purpose, Features, Business Rules, User Impact, Configuration/Policies |
-| `ai_context.json` | `_codetodocs`, `component`, `modules`, `api`, `types`, `configuration`, `dependencies`, `metrics` |
+| `ai_context.yaml` | `_codetodocs`, `component`, `integration`, `modules`, `api`, `types`, `configuration`, `dependencies` |
 
 ### 6. Ignore Rules
 
@@ -101,7 +101,7 @@ The set of files the bootstrap installer copies into a target repo.
 | `assets/prompts/codetodocs.status.prompt.md` | `.github/prompts/codetodocs.status.prompt.md` |
 | `assets/templates/technical_doc.md` | `.codetodocs/templates/technical_doc.md` |
 | `assets/templates/product_doc.md` | `.codetodocs/templates/product_doc.md` |
-| `assets/templates/ai_context.json` | `.codetodocs/templates/ai_context.json` |
+| `assets/templates/ai_context.yaml` | `.codetodocs/templates/ai_context.yaml` |
 
 **Idempotency**: Existing files are never overwritten; skipped files are reported.
 

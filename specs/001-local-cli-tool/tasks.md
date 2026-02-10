@@ -30,7 +30,7 @@
 
 - [X] T003 [P] Create technical documentation template with sections: Purpose, Architecture, Setup/Installation, Running, Configuration, Key APIs, Edge Cases, Dependencies in `.codetodocs/templates/technical_doc.md`
 - [X] T004 [P] Create product documentation template with sections: Purpose, Features, Business Rules, User Impact, Configuration/Policies in `.codetodocs/templates/product_doc.md`
-- [X] T005 [P] Create AI context JSON template following the schema contract (with `_codetodocs`, `component`, `modules`, `api`, `types`, `configuration`, `dependencies`, `metrics` fields) in `.codetodocs/templates/ai_context.json`
+- [X] T005 [P] Create AI context YAML template following the schema contract (with `_codetodocs`, `component`, `integration`, `modules`, `api`, `types`, `configuration`, `dependencies` fields) in `.codetodocs/templates/ai_context.yaml`
 
 **Checkpoint**: All three templates validated against contracts/ai-context-schema.md and data-model.md entity definitions
 
@@ -59,7 +59,7 @@
 
 ### Implementation for User Story 2
 
-- [X] T008 [US2] Create `codetodocs.run.prompt.md` with YAML frontmatter, full-scan mode instructions: read config.yaml → resolve components (or single implicit component using repo name per FR-023) → detect overlapping component paths and emit a configuration warning (assign file to first matching component) → group unmatched files into implicit "uncategorized" component when components are defined → discover source files per component (respecting .gitignore and .codetodocsignore per FR-006/FR-007; report invalid .codetodocsignore patterns and continue with valid ones) → read templates → generate tri-audience documentation per component → prepend HTML comment header marker with component name and ISO 8601 timestamp per FR-027 → write to `{output_dir}/technical/{component}.md`, `{output_dir}/product/{component}.md`, `{output_dir}/ai/{component}.json` → handle custom documents per FR-025 → report summary per FR-013 → self-correction validation per FR-009 → component-level error isolation per FR-010, in `.github/prompts/codetodocs.run.prompt.md`
+- [X] T008 [US2] Create `codetodocs.run.prompt.md` with YAML frontmatter, full-scan mode instructions: read config.yaml → resolve components (or single implicit component using repo name per FR-023) → detect overlapping component paths and emit a configuration warning (assign file to first matching component) → group unmatched files into implicit "uncategorized" component when components are defined → discover source files per component (respecting .gitignore and .codetodocsignore per FR-006/FR-007; report invalid .codetodocsignore patterns and continue with valid ones) → read templates → generate tri-audience documentation per component → prepend HTML comment header marker with component name and ISO 8601 timestamp per FR-027 → write to `{output_dir}/technical/{component}.md`, `{output_dir}/product/{component}.md`, `{output_dir}/ai/{component}.yaml` → handle custom documents per FR-025 → report summary per FR-013 → self-correction validation per FR-009 → component-level error isolation per FR-010, in `.github/prompts/codetodocs.run.prompt.md`
 
 **T008 FR Verification Checklist** (validate during implementation):
 - [X] FR-002: Run prompt generates/updates docs

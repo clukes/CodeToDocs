@@ -34,7 +34,7 @@ Check that the bootstrap installer has already copied the required files:
 **Required template files:**
 - `.codetodocs/templates/technical_doc.md`
 - `.codetodocs/templates/product_doc.md`
-- `.codetodocs/templates/ai_context.json`
+- `.codetodocs/templates/ai_context.yaml`
 
 If any of these files are missing:
 - List the missing files.
@@ -100,7 +100,7 @@ If all files are present → proceed to Step 3.
 
 ### Step 7: Ask About Custom Document Types
 
-1. Ask: "CodeToDocs generates three document types by default: Technical (engineers), Product (PMs), and AI Context (JSON). Do you want to add any custom document types? (yes/no)"
+1. Ask: "CodeToDocs generates three document types by default: Technical (engineers), Product (PMs), and AI Context (YAML). Do you want to add any custom document types? (yes/no)"
 2. If **no** → proceed to Step 7b.
 3. If **yes** → for each custom document, collect:
    - `name` — identifier for the document type (e.g., `runbook`, `onboarding`)
@@ -118,7 +118,7 @@ If all files are present → proceed to Step 3.
 3. If **yes** → present the three defaults and let the user select which to exclude:
    - `technical` — Engineer-facing documentation
    - `product` — PM-facing documentation
-   - `ai_context` — AI/RAG-facing JSON
+   - `ai_context` — AI/RAG-facing YAML
 4. Validate:
    - Each entry must be one of: `technical`, `product`, `ai_context`.
    - Cannot exclude all three defaults unless at least one custom document was added in Step 7. If the user tries to exclude all defaults with no custom documents, warn: "You must keep at least one document type. Either keep a default or add a custom document type."
@@ -198,7 +198,7 @@ Configuration written to .codetodocs/config.yaml
 Templates installed:
   - .codetodocs/templates/technical_doc.md   (engineer-facing)
   - .codetodocs/templates/product_doc.md     (PM-facing)
-  - .codetodocs/templates/ai_context.json    (AI/RAG-facing)
+  - .codetodocs/templates/ai_context.yaml    (AI/RAG-facing)
   - .codetodocs/templates/{name}.md          (only if custom documents were added)
 
 Review and adjust these templates if you want to customize the structure

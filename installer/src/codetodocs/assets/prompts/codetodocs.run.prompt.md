@@ -79,7 +79,7 @@ Using the priority map from 4.2:
 5. Load templates from `.codetodocs/templates/` — **skip any excluded by `exclude_defaults`**:
    - `technical_doc.md` (skip if `exclude_defaults` contains `technical`)
    - `product_doc.md` (skip if `exclude_defaults` contains `product`)
-   - `ai_context.json` (skip if `exclude_defaults` contains `ai_context`)
+   - `ai_context.yaml` (skip if `exclude_defaults` contains `ai_context`)
 
 ### 4.4 Generate Documentation
 
@@ -137,40 +137,38 @@ Follow `.codetodocs/templates/product_doc.md`. Include these sections:
 - Omit implementation details entirely — if a PM wouldn't care, leave it out.
 - Keep the full document readable in under 3 minutes.
 
-#### c. AI Context JSON → `{output_dir}/ai/{component}.json`
+#### c. AI Context YAML → `{output_dir}/ai/{component}.yaml`
 
 **Skip this artifact if `exclude_defaults` contains `ai_context`.**
 
-Follow `.codetodocs/templates/ai_context.json`. Required top-level keys:
+Follow `.codetodocs/templates/ai_context.yaml`. Required top-level keys:
 
 ```
-_codetodocs   → { component, generated (ISO 8601), schema_version: "1.0" }
-component     → { name, description }
-integration   → { upstream: [{ service, protocol, description }],
-                  downstream: [{ service, protocol, description }],
-                  events_published: [{ topic, payload, description }],
-                  events_consumed: [{ topic, payload, description }],
-                  data_ownership: [],
-                  flows: [{ name, role, position }] }
-modules       → [ { path, purpose, exports } ]
-api           → { functions: [{ name, signature, description }],
-                  classes: [{ name, signature, description, methods }] }
-types         → [ { name, definition } ]
-configuration → { files, env_vars }
-dependencies  → { internal: [], external: [] }
-metrics       → { files_analyzed, modules_documented }
+_codetodocs   → component, generated (ISO 8601), schema_version: "2.0"
+component     → name, purpose, languages, entry_points
+integration   → upstream, downstream, events_published, events_consumed,
+                data_ownership, flows
+modules       → [ path, purpose, exports ]
+api           → functions: [ name, signature, description ]
+                classes: [ name, description, methods (one-liner each) ]
+types         → [ name, definition ]
+configuration → files, env_vars (one-liner each)
+dependencies  → internal: [], external: [ "pkg version — why" ]
 ```
 
-**Audience:** AI agents — structured for RAG retrieval. Must be valid JSON.
+**Audience:** AI agents — structured for RAG retrieval. Must be valid YAML.
+
+**Why YAML over JSON:** ~40-60% fewer tokens (no quoted keys, no commas, no braces), supports inline comments, and agents parse it equally well. Aligns with the config format already being YAML.
 
 **Scope rules — keep the AI context concise and useful:**
 
 - **Modules**: Group files into logical modules/namespaces (e.g., `src/services/`, `src/models/`). List one entry per module directory, NOT one entry per file. Use the `purpose` field to summarize what the module does and `exports` to list its key public symbols.
 - **API surface only**: Document only **public/exported** functions, classes, and methods. Skip private/internal helpers, test utilities, and implementation details. A function is "public" if it is exported, part of an interface/contract, or called from outside its module.
-- **Classes**: Include only public methods. Skip private methods, constructors with no notable logic, and boilerplate (getters/setters, `toString`, etc.).
+- **Classes**: Include only public methods as compact one-liners: `"methodName(args) -> Return — description"`. Skip private methods, constructors with no notable logic, and boilerplate.
 - **Types**: Include only types that appear in public API signatures or are important domain models. Skip internal DTOs, helper types, and framework-generated types.
-- **Configuration**: List only user-facing config variables and environment variables. Skip build-time or CI-only configuration.
-- **Size target**: Aim for the AI context JSON to be **under 200 lines** for a typical component. If a component has an unusually large public API, prioritize the most important interfaces and note "Additional APIs documented in technical docs" in the description.
+- **Configuration**: Use compact one-liner format: `"VAR_NAME: type, required|optional, default — description"`. List only user-facing config variables. Skip build-time or CI-only configuration.
+- **Dependencies**: Use compact one-liner format for externals: `"package-name >=1.0 — why"`. No nested objects.
+- **Size target**: Aim for the AI context YAML to be **under 150 lines** for a typical component. If a component has an unusually large public API, prioritize the most important interfaces and note "Additional APIs documented in technical docs" in the component purpose.
 - **No file-per-file listing**: The `modules` array should contain **5-20 entries** representing logical groupings, not hundreds of individual file entries.
 
 ### 4.5 Header Markers
@@ -185,7 +183,7 @@ Use this **exact value** (with full date AND time, e.g., `2026-02-09T17:42:03Z`)
   ```
   <!-- CodeToDocs | Component: {component-name} | Generated: 2026-02-09T17:42:03Z -->
   ```
-- **JSON docs**: Set `_codetodocs.generated` to the same full timestamp string (e.g., `"2026-02-09T17:42:03Z"`).
+- **YAML docs**: Set `_codetodocs.generated` to the same full timestamp string (e.g., `"2026-02-09T17:42:03Z"`).
 
 ### 4.6 Write Files
 
@@ -205,14 +203,14 @@ If `documents` is defined in config, for each entry:
 After generating **each** document:
 
 - **Markdown**: Verify the header marker comment is present.
-- **JSON**: Verify output is valid JSON and contains the `_codetodocs` metadata object.
+- **YAML**: Verify output is valid YAML and contains the `_codetodocs` metadata object.
 - On failure: attempt to regenerate **once**. If still invalid, report the error and continue.
 
 ## 7. Update AI Agent Instructions
 
 **Skip this entire section if `exclude_defaults` contains `ai_context`** (no AI context files were generated).
 
-After all AI context JSON files have been generated, update the repository's AI agent instructions file to reference the generated documentation.
+After all AI context YAML files have been generated, update the repository's AI agent instructions file to reference the generated documentation.
 
 ### 7.1 Detect Instructions File
 
@@ -237,7 +235,7 @@ Insert or update the following block, listing all generated AI context files:
 This repository has auto-generated AI context documentation. Consult these docs when answering questions about the codebase (especially configuration and feature flags), then verify against source or environment-specific files if needed. These files provide structured information about the codebase for AI coding agents and RAG retrieval:
 
 {for each component:}
-- `{output_dir}/ai/{component}.json` — Structured context for {component}: modules, APIs, types, configuration, and dependencies.
+- `{output_dir}/ai/{component}.yaml` — Structured context for {component}: modules, APIs, types, configuration, and dependencies.
 {end for}
 <!-- codetodocs:end -->
 ```

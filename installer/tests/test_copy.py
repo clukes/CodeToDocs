@@ -23,7 +23,7 @@ def test_copy_assets_fresh(tmp_path: Path) -> None:
     assert (tmp_path / ".github" / "prompts" / "codetodocs.status.prompt.md").exists()
     assert (tmp_path / ".codetodocs" / "templates" / "technical_doc.md").exists()
     assert (tmp_path / ".codetodocs" / "templates" / "product_doc.md").exists()
-    assert (tmp_path / ".codetodocs" / "templates" / "ai_context.json").exists()
+    assert (tmp_path / ".codetodocs" / "templates" / "ai_context.yaml").exists()
 
     # Version marker should be written
     assert (tmp_path / VERSION_FILE).exists()

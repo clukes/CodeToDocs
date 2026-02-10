@@ -45,8 +45,8 @@ ASSET_MANIFEST: list[ManifestEntry] = [
         ".codetodocs/templates/product_doc.md",
     ),
     ManifestEntry(
-        "assets/templates/ai_context.json",
-        ".codetodocs/templates/ai_context.json",
+        "assets/templates/ai_context.yaml",
+        ".codetodocs/templates/ai_context.yaml",
     ),
 ]
 

@@ -50,7 +50,7 @@ Copied:
   .github/prompts/codetodocs.status.prompt.md
   .codetodocs/templates/technical_doc.md
   .codetodocs/templates/product_doc.md
-  .codetodocs/templates/ai_context.json
+  .codetodocs/templates/ai_context.yaml
 
 Skipped (already exist):
   (none)
@@ -66,7 +66,7 @@ Next step: Run /codetodocs.init in your AI coding assistant to complete setup.
 CodeToDocs v0.1.0
 
 Copied:
-  .codetodocs/templates/ai_context.json
+  .codetodocs/templates/ai_context.yaml
 
 Skipped (already exist):
   .github/prompts/codetodocs.init.prompt.md

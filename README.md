@@ -63,7 +63,7 @@ Coverage: 33% (1/3 fully documented)
 docs/
 ├── technical/{component}.md   # Engineer-facing: architecture, APIs, setup
 ├── product/{component}.md     # PM-facing: features, business rules, user impact
-└── ai/{component}.json        # Agent-facing: structured JSON for RAG retrieval
+└── ai/{component}.yaml        # Agent-facing: structured YAML for RAG retrieval
 ```
 
 ## Configuration
