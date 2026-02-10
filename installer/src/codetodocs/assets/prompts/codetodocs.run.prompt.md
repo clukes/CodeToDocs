@@ -96,13 +96,14 @@ Follow `.codetodocs/templates/technical_doc.md`. Include these sections:
 | Section | Content |
 |---|---|
 | Purpose | What the component does and why it exists |
+| System Context | Upstream/downstream services, data ownership, which end-to-end flows this component participates in and its role in each |
 | Architecture | High-level design, key patterns, data flow |
 | Setup / Installation | Prerequisites, install steps, environment |
 | Running | How to run, dev mode, build commands |
 | Configuration | Config files, env vars, defaults |
-| Key APIs | Public interfaces, endpoints, signatures |
+| Key APIs | Public interfaces, endpoints, signatures, events published/consumed |
 | Edge Cases | Known limitations, gotchas, error scenarios |
-| Dependencies | Internal and external dependencies |
+| Dependencies | Internal services (with protocols), external packages, infrastructure |
 
 **Audience:** Engineers — be precise, include code-level details.
 
@@ -121,6 +122,7 @@ Follow `.codetodocs/templates/product_doc.md`. Include these sections:
 | Section | Content |
 |---|---|
 | Purpose | Business value and problem solved |
+| System Role | What triggers this component, what it produces, which user-visible processes it belongs to |
 | Features | User-facing capabilities |
 | Business Rules | Policies, constraints, logic |
 | User Impact | How changes affect end users |
@@ -144,6 +146,12 @@ Follow `.codetodocs/templates/ai_context.json`. Required top-level keys:
 ```
 _codetodocs   → { component, generated (ISO 8601), schema_version: "1.0" }
 component     → { name, description }
+integration   → { upstream: [{ service, protocol, description }],
+                  downstream: [{ service, protocol, description }],
+                  events_published: [{ topic, payload, description }],
+                  events_consumed: [{ topic, payload, description }],
+                  data_ownership: [],
+                  flows: [{ name, role, position }] }
 modules       → [ { path, purpose, exports } ]
 api           → { functions: [{ name, signature, description }],
                   classes: [{ name, signature, description, methods }] }

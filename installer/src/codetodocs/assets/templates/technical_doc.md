@@ -8,6 +8,16 @@
 
 Describe what this component does, its role in the larger system, and the core problem it solves. Include the component's primary responsibilities and boundaries.
 
+## System Context
+
+Describe where this component fits in the overall system:
+- **Upstream services/triggers**: What invokes or sends data to this component (HTTP requests, queue messages, cron, etc.)
+- **Downstream services/outputs**: What this component calls, publishes, or writes to
+- **Data ownership**: What data/state this component owns vs. reads from other services
+- **End-to-end flows**: List **each** business process this component participates in and its role in each. A single service often spans multiple flows (e.g., "Step 3 of order fulfillment: validates inventory" AND "Step 1 of returns processing: checks eligibility"). Document all of them.
+
+Include a simple flow or sequence description per flow showing how this component connects to its neighbors.
+
 ## Architecture
 
 Provide a high-level overview of the component's design. Cover:
@@ -45,8 +55,9 @@ Document all configuration options:
 List the public interface of this component:
 - Exported functions and their signatures
 - Classes and their public methods
-- HTTP endpoints (if applicable)
+- HTTP endpoints (if applicable) — include method, path, request/response schemas
 - Event hooks or callbacks
+- Events published and consumed (topic/queue names, payload schemas)
 - Include parameter types, return types, and brief descriptions
 
 ## Edge Cases
@@ -60,6 +71,7 @@ Document known limitations and boundary conditions:
 ## Dependencies
 
 List all dependencies:
-- Internal dependencies (other components/packages in the repo)
+- Internal dependencies (other components/services in the system) — note the communication protocol (HTTP, gRPC, queue, database, etc.)
 - External dependencies (third-party packages) with version constraints
+- Infrastructure dependencies (databases, message brokers, caches, etc.)
 - System-level requirements

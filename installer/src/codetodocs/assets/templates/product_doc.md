@@ -8,6 +8,13 @@
 
 Describe what this component provides to users and the problem it solves. Focus on the user-facing value proposition, not internal implementation details.
 
+## System Role
+
+Explain this component's role in the overall product workflow in plain language:
+- What triggers this component to act (e.g., "Runs when a new order is placed")
+- What this component produces or enables for downstream steps
+- Which user-visible processes this component is part of — list **all** of them, as a single service often participates in multiple business processes (e.g., order placement, returns, inventory sync)
+
 ## Features
 
 List the capabilities this component offers. For each feature, briefly describe what users can do and why it matters.

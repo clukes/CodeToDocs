@@ -10,6 +10,49 @@
     "languages": ["Language"],
     "entry_points": ["path/to/entry"]
   },
+  "integration": {
+    "upstream": [
+      {
+        "service": "service-name",
+        "protocol": "HTTP | gRPC | queue | event | database",
+        "description": "What this service receives from upstream"
+      }
+    ],
+    "downstream": [
+      {
+        "service": "service-name",
+        "protocol": "HTTP | gRPC | queue | event | database",
+        "description": "What this service sends to downstream"
+      }
+    ],
+    "events_published": [
+      {
+        "topic": "topic-or-queue-name",
+        "payload": "PayloadTypeName",
+        "description": "When and why this event is published"
+      }
+    ],
+    "events_consumed": [
+      {
+        "topic": "topic-or-queue-name",
+        "payload": "PayloadTypeName",
+        "description": "What this service does when receiving this event"
+      }
+    ],
+    "data_ownership": ["list of data entities this service owns"],
+    "flows": [
+      {
+        "name": "end-to-end-flow-name",
+        "role": "What this component does in the flow",
+        "position": "e.g., step 3 of 5"
+      },
+      {
+        "name": "second-flow-name (a service often participates in multiple flows)",
+        "role": "What this component does in this other flow",
+        "position": "e.g., step 1 of 3"
+      }
+    ]
+  },
   "modules": [
     {
       "name": "module-name",
