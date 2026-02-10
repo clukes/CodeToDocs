@@ -14,8 +14,25 @@ Generate documentation for every component in the repository.
 
 ## 2. Mode Detection
 
-- If **no files** exist under `{output_dir}/` → **full-scan mode** (Section 4).
-- If documentation already exists → **incremental mode** (Section 9).
+1. If **no files** exist under `{output_dir}/` → **full-scan mode** (Section 4).
+2. If documentation exists, check **coverage per component** (Section 2a). This determines whether gap-fill is needed before incremental.
+3. If all expected artifacts exist for every component → **incremental mode** (Section 10).
+
+### 2a. Coverage Check
+
+For each resolved component, check which non-excluded default artifacts exist:
+
+| Artifact | Path | Excluded if |
+|----------|------|-------------|
+| Technical | `{output_dir}/technical/{component}.md` | `exclude_defaults` contains `technical` |
+| Product | `{output_dir}/product/{component}.md` | `exclude_defaults` contains `product` |
+| AI context | `{output_dir}/ai/{component}.yaml` | `exclude_defaults` contains `ai_context` |
+
+Also check any custom documents defined in `documents`.
+
+If any component has **missing** (not excluded) artifacts:
+- For each such component, run **full-scan generation (Section 4) only for the missing artifact types**. Do NOT regenerate artifacts that already exist.
+- After gap-fill completes, proceed to **incremental mode (Section 10)** for source-change detection as normal. Components that just had gap-fill may still get updated again if source changes warrant it — that is fine.
 
 ## 3. Component Resolution
 
@@ -260,6 +277,7 @@ After all components are processed, print a summary:
 
 - **Components processed**: {total}
 - **Successful**: {count}
+- **Gap-filled**: {count} (with list of artifact types generated)
 - **Skipped**: {count} (with reasons)
 - **Errors**: {count} (with details)
 
@@ -342,12 +360,13 @@ Unchanged components' documentation files are **not modified** — their timesta
 
 - **Changed files detected**: {count}
 - **Affected components**: {count}
+- **Gap-filled**: {count} (components that had missing artifacts generated)
 - **Regenerated**: {list}
 - **Skipped (no changes)**: {list}
 - **Skipped (no doc-relevant changes)**: {list}
 - **Orphaned**: {list}
 - **Errors**: {count}
 
-### Files Updated
+### Files Written
 - {list each file path}
 ```
