@@ -4,25 +4,29 @@
 
 ## `/codetodocs.init` — Initialize Repository
 
-**Input**: None (reads current repository state)
+**Input**: None (reads current repository state, prompts user interactively)
 
-**Prerequisites**: Prompt files exist in `.github/prompts/`
+**Prerequisites**: Prompt files and templates exist (installed by `uvx codetodocs`)
 
 **Behavior**:
-1. Check if `.codetodocs/` directory exists
-2. If exists → report "already initialized", list existing files, exit
-3. If not exists → create:
-   - `.codetodocs/config.yaml` (with defaults: `output_dir: docs/`, `target_branch: main`)
-   - `.codetodocs/templates/technical_doc.md`
-   - `.codetodocs/templates/product_doc.md`
-   - `.codetodocs/templates/ai_context.json`
-4. Report summary of created files
-5. Print next step: "Run `/codetodocs.run` to generate documentation"
+1. Check this is a Git repository
+2. Verify installer assets exist (prompts in `.github/prompts/`, templates in `.codetodocs/templates/`)
+3. If assets missing → report error, instruct user to run `uvx codetodocs`, exit
+4. If `.codetodocs/config.yaml` exists → show contents, ask user if they want to overwrite
+5. Detect default branch (from remote, or check for `main`/`master`) → ask user to confirm
+6. Ask user for output directory (default: `docs/`)
+7. Analyze repo structure for monorepo signals → suggest single-component or multi-component setup
+8. Ask user to confirm/adjust component definitions
+9. Ask if user wants custom document types beyond the three defaults
+10. Write `.codetodocs/config.yaml` with collected values
+11. Report summary and next step: "Run `/codetodocs.run` to generate documentation"
 
-**Output**: Created files on disk + summary message
+**Output**: `.codetodocs/config.yaml` on disk + summary message
 
 **Error cases**:
-- `.codetodocs/` already exists → report, do not overwrite
+- Not a Git repository → report error, stop
+- Missing installer assets → report missing files, instruct to run installer, stop
+- Invalid user input → re-prompt with validation message
 
 ---
 

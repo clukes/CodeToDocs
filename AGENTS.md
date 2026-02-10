@@ -6,7 +6,7 @@ CodeToDocs is a prompt-driven agent tool that analyzes Git diffs and uses the AI
 
 A lightweight bootstrap installer (`uvx codetodocs` or `npx codetodocs`) automates copying all files into a new repo with a single command.
 
-See [docs/PRD.md](../docs/PRD.md) for the full product requirements.
+See [docs/PRD.md](docs/PRD.md) for the full product requirements.
 
 ## Architecture
 
@@ -82,13 +82,17 @@ documents:
     template: .codetodocs/templates/runbook.md
     output: docs/operations/{component}-runbook.md
     audience: SRE/Operations team
+
+# Optional: Exclude specific default document types (technical, product, ai_context)
+exclude_defaults:
+  - ai_context
 ```
 
 ## Project Conventions
 
 - **Bootstrap install:** `uvx codetodocs` (or `npx codetodocs`) copies prompt files + templates into a repo
 - **Agent commands:** `/codetodocs.init` (scaffold config + templates), `/codetodocs.run` (generate/update docs), `/codetodocs.status` (coverage report)
-- **Config format:** YAML at `.codetodocs/config.yaml` with keys: `output_dir`, `target_branch`, `components`, `documents`
+- **Config format:** YAML at `.codetodocs/config.yaml` with keys: `output_dir`, `target_branch`, `components`, `documents`, `exclude_defaults`
 - **Documentation scope:** Per component (or whole repo if no components defined), not per file
 - **Ignore files:** Respect both `.gitignore` and `.codetodocsignore`
 - **SpecKit workflow:** This repo uses SpecKit for spec-driven development. Feature work follows: Constitution → Specify → Clarify → Plan → Tasks → Implement. Feature branches use `###-feature-name` naming (e.g., `001-local-cli-tool`). Specs live in `specs/###-feature-name/`

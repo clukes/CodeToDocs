@@ -33,6 +33,13 @@ components:
       - apps/api/
     description: "Node.js API server"
 
+# Exclude specific default document types
+# Type: array of strings
+# Valid values: "technical", "product", "ai_context"
+# Default: (none — all three defaults are generated)
+exclude_defaults:
+  - ai_context            # Omit AI context JSON generation
+
 # Custom document types beyond the three defaults
 # Type: array of CustomDocument objects
 # Default: (none)
@@ -51,6 +58,7 @@ documents:
 | `target_branch` | Must be a valid Git ref name. Agent should verify it exists with `git rev-parse`. |
 | `components[].name` | Must be unique across all components. Must be valid as a filename (alphanumeric, hyphens, underscores). |
 | `components[].paths` | Each path must exist in the repository. Overlapping paths across components produce a warning (file assigned to first match). |
+| `exclude_defaults` | Each entry must be one of: `technical`, `product`, `ai_context`. Invalid values are reported and ignored. Cannot exclude all three defaults unless at least one custom document is defined. |
 | `documents[].template` | Must point to an existing file. If missing, agent reports error and skips that document. |
 | `documents[].output` | Must contain `{component}` placeholder. Must be a relative path. |
 
@@ -61,4 +69,4 @@ output_dir: docs/
 target_branch: main
 ```
 
-No `components` or `documents` sections by default — the agent treats the entire repo as one component and generates only the three default document types.
+No `components`, `exclude_defaults`, or `documents` sections by default — the agent treats the entire repo as one component and generates only the three default document types.

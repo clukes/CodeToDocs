@@ -13,12 +13,14 @@ The runtime configuration loaded by prompt commands.
 | `output_dir` | string | No | `docs/` | Directory where generated docs are written |
 | `target_branch` | string | No | `main` | Branch to diff against for incremental updates |
 | `components` | Component[] | No | (entire repo) | List of component definitions |
+| `exclude_defaults` | string[] | No | (none) | Default doc types to exclude: `technical`, `product`, `ai_context` |
 | `documents` | CustomDocument[] | No | (none) | Additional document types beyond defaults |
 
 **Validation rules**:
 - `output_dir` must be a relative path (no leading `/`)
 - `target_branch` must be a valid Git ref
 - `components[].paths` entries must not overlap across components (warn if they do)
+- `exclude_defaults` entries must be one of: `technical`, `product`, `ai_context`. Cannot exclude all three unless at least one custom document is defined.
 
 ### 2. Component
 

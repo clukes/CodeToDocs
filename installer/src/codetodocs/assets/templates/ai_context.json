@@ -1,0 +1,95 @@
+{
+  "_codetodocs": {
+    "component": "{component}",
+    "generated": "{YYYY-MM-DDTHH:MM:SSZ}",
+    "schema_version": "1.0"
+  },
+  "component": {
+    "name": "{component}",
+    "purpose": "Brief description of what this component does",
+    "languages": ["Language"],
+    "entry_points": ["path/to/entry"]
+  },
+  "modules": [
+    {
+      "name": "module-name",
+      "path": "path/to/module/directory",
+      "description": "What this logical module does (group related files, not one entry per file)",
+      "role": "core | integration | infrastructure",
+      "exports": ["key public symbols exported by this module"]
+    }
+  ],
+  "api": {
+    "functions": [
+      {
+        "name": "functionName",
+        "module": "parent-module",
+        "signature": "full function signature",
+        "description": "What it does",
+        "parameters": [
+          {
+            "name": "param",
+            "type": "string",
+            "optional": false,
+            "description": "Parameter description"
+          }
+        ],
+        "returns": {
+          "type": "ReturnType",
+          "description": "What is returned"
+        }
+      }
+    ],
+    "classes": [
+      {
+        "name": "ClassName",
+        "module": "parent-module",
+        "description": "Class purpose",
+        "methods": [
+          {
+            "name": "methodName",
+            "signature": "full method signature",
+            "description": "What it does"
+          }
+        ]
+      }
+    ]
+  },
+  "types": [
+    {
+      "name": "TypeName",
+      "definition": "type definition in source language",
+      "description": "What this type represents"
+    }
+  ],
+  "configuration": {
+    "description": "How configuration is provided",
+    "variables": [
+      {
+        "name": "CONFIG_VAR",
+        "type": "string",
+        "required": true,
+        "default": "default-value",
+        "description": "What it controls"
+      }
+    ]
+  },
+  "dependencies": {
+    "internal": [],
+    "external": [
+      {
+        "name": "package-name",
+        "version": ">=1.0",
+        "purpose": "Why it is used"
+      }
+    ]
+  },
+  "metrics": {
+    "files": 0,
+    "lines_of_code": 0,
+    "public_api_surface": 0,
+    "internal_dependencies": 0,
+    "external_dependencies": 0,
+    "complexity_rating": "low | moderate | high | very_high"
+  }
+}

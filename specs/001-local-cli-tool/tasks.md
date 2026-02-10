@@ -17,8 +17,8 @@
 
 **Purpose**: Project initialization and directory structure
 
-- [ ] T001 Create project directory structure per plan.md: `installer/src/codetodocs/`, `installer/src/codetodocs/assets/prompts/`, `installer/src/codetodocs/assets/templates/`, `installer/tests/fixtures/`, `.github/prompts/`, `.codetodocs/templates/`
-- [ ] T002 Create pyproject.toml with hatchling build backend, `codetodocs` entry point, Python ≥3.10, and project metadata in `installer/pyproject.toml`
+- [X] T001 Create project directory structure per plan.md: `installer/src/codetodocs/`, `installer/src/codetodocs/assets/prompts/`, `installer/src/codetodocs/assets/templates/`, `installer/tests/fixtures/`, `.github/prompts/`, `.codetodocs/templates/`
+- [X] T002 Create pyproject.toml with hatchling build backend, `codetodocs` entry point, Python ≥3.10, and project metadata in `installer/pyproject.toml`
 
 ---
 
@@ -28,9 +28,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until these templates exist
 
-- [ ] T003 [P] Create technical documentation template with sections: Purpose, Architecture, Setup/Installation, Running, Configuration, Key APIs, Edge Cases, Dependencies in `.codetodocs/templates/technical_doc.md`
-- [ ] T004 [P] Create product documentation template with sections: Purpose, Features, Business Rules, User Impact, Configuration/Policies in `.codetodocs/templates/product_doc.md`
-- [ ] T005 [P] Create AI context JSON template following the schema contract (with `_codetodocs`, `component`, `modules`, `api`, `types`, `configuration`, `dependencies`, `metrics` fields) in `.codetodocs/templates/ai_context.json`
+- [X] T003 [P] Create technical documentation template with sections: Purpose, Architecture, Setup/Installation, Running, Configuration, Key APIs, Edge Cases, Dependencies in `.codetodocs/templates/technical_doc.md`
+- [X] T004 [P] Create product documentation template with sections: Purpose, Features, Business Rules, User Impact, Configuration/Policies in `.codetodocs/templates/product_doc.md`
+- [X] T005 [P] Create AI context JSON template following the schema contract (with `_codetodocs`, `component`, `modules`, `api`, `types`, `configuration`, `dependencies`, `metrics` fields) in `.codetodocs/templates/ai_context.json`
 
 **Checkpoint**: All three templates validated against contracts/ai-context-schema.md and data-model.md entity definitions
 
@@ -44,8 +44,8 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create `codetodocs.init.prompt.md` with YAML frontmatter (`description`, `agent: agent`), purpose section, prerequisite check, step-by-step scaffold workflow (check `.codetodocs/` existence → create config.yaml with defaults → create templates → report summary), idempotency guard, and error handling per contracts/prompt-commands.md in `.github/prompts/codetodocs.init.prompt.md`
-- [ ] T007 [P] [US1] Create default `config.yaml` for development/testing with `output_dir: docs/` and `target_branch: main` per contracts/config-schema.md in `.codetodocs/config.yaml`
+- [X] T006 [US1] Create `codetodocs.init.prompt.md` with YAML frontmatter (`description`, `agent: agent`), purpose section, prerequisite check, step-by-step scaffold workflow (check `.codetodocs/` existence → create config.yaml with defaults → create templates → report summary), idempotency guard, and error handling per contracts/prompt-commands.md in `.github/prompts/codetodocs.init.prompt.md`
+- [X] T007 [P] [US1] Create default `config.yaml` for development/testing with `output_dir: docs/` and `target_branch: main` per contracts/config-schema.md in `.codetodocs/config.yaml`
 
 **Checkpoint**: `/codetodocs.init` can be invoked in Copilot on a test repo. Config and templates are created. Re-running reports "already initialized."
 
@@ -59,23 +59,23 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Create `codetodocs.run.prompt.md` with YAML frontmatter, full-scan mode instructions: read config.yaml → resolve components (or single implicit component using repo name per FR-023) → detect overlapping component paths and emit a configuration warning (assign file to first matching component) → group unmatched files into implicit "uncategorized" component when components are defined → discover source files per component (respecting .gitignore and .codetodocsignore per FR-006/FR-007; report invalid .codetodocsignore patterns and continue with valid ones) → read templates → generate tri-audience documentation per component → prepend HTML comment header marker with component name and ISO 8601 timestamp per FR-027 → write to `{output_dir}/technical/{component}.md`, `{output_dir}/product/{component}.md`, `{output_dir}/ai/{component}.json` → handle custom documents per FR-025 → report summary per FR-013 → self-correction validation per FR-009 → component-level error isolation per FR-010, in `.github/prompts/codetodocs.run.prompt.md`
+- [X] T008 [US2] Create `codetodocs.run.prompt.md` with YAML frontmatter, full-scan mode instructions: read config.yaml → resolve components (or single implicit component using repo name per FR-023) → detect overlapping component paths and emit a configuration warning (assign file to first matching component) → group unmatched files into implicit "uncategorized" component when components are defined → discover source files per component (respecting .gitignore and .codetodocsignore per FR-006/FR-007; report invalid .codetodocsignore patterns and continue with valid ones) → read templates → generate tri-audience documentation per component → prepend HTML comment header marker with component name and ISO 8601 timestamp per FR-027 → write to `{output_dir}/technical/{component}.md`, `{output_dir}/product/{component}.md`, `{output_dir}/ai/{component}.json` → handle custom documents per FR-025 → report summary per FR-013 → self-correction validation per FR-009 → component-level error isolation per FR-010, in `.github/prompts/codetodocs.run.prompt.md`
 
 **T008 FR Verification Checklist** (validate during implementation):
-- [ ] FR-002: Run prompt generates/updates docs
-- [ ] FR-003: Three artifacts per component
-- [ ] FR-004: Reads all source files in component
-- [ ] FR-006: Respects .gitignore
-- [ ] FR-007: Respects .codetodocsignore (including invalid pattern handling)
-- [ ] FR-009: Self-correction on invalid output
-- [ ] FR-010: Continues on component failure
-- [ ] FR-013: Reports progress and results
-- [ ] FR-023: Single-component repo uses repo name
-- [ ] FR-024: Honors components list from config
-- [ ] FR-025: Generates custom documents
-- [ ] FR-027: Prepends header marker with metadata
-- [ ] Overlapping component path detection + warning
-- [ ] Uncategorized component for unmatched files
+- [X] FR-002: Run prompt generates/updates docs
+- [X] FR-003: Three artifacts per component
+- [X] FR-004: Reads all source files in component
+- [X] FR-006: Respects .gitignore
+- [X] FR-007: Respects .codetodocsignore (including invalid pattern handling)
+- [X] FR-009: Self-correction on invalid output
+- [X] FR-010: Continues on component failure
+- [X] FR-013: Reports progress and results
+- [X] FR-023: Single-component repo uses repo name
+- [X] FR-024: Honors components list from config
+- [X] FR-025: Generates custom documents
+- [X] FR-027: Prepends header marker with metadata
+- [X] Overlapping component path detection + warning
+- [X] Uncategorized component for unmatched files
 
 **Checkpoint**: `/codetodocs.run` generates 3 documentation files for a test repo. Outputs contain correct header markers and conform to template structure.
 
@@ -89,7 +89,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Extend `codetodocs.run.prompt.md` with incremental mode: detect existing docs to determine mode → run `git diff {target_branch}...HEAD --name-only` to find changed files → map changed files to components → for trivial-only changes, skip component and report per FR-014 → for deleted files within a component, regenerate docs → for deleted component directory, prepend `<!-- ORPHANED: Component directory deleted -->` header → read full component files (context) plus diff (focus) for affected components → regenerate only affected components' docs → report incremental summary, in `.github/prompts/codetodocs.run.prompt.md`
+- [X] T009 [US3] Extend `codetodocs.run.prompt.md` with incremental mode: detect existing docs to determine mode → run `git diff {target_branch}...HEAD --name-only` to find changed files → map changed files to components → for trivial-only changes, skip component and report per FR-014 → for deleted files within a component, regenerate docs → for deleted component directory, prepend `<!-- ORPHANED: Component directory deleted -->` header → read full component files (context) plus diff (focus) for affected components → regenerate only affected components' docs → report incremental summary, in `.github/prompts/codetodocs.run.prompt.md`
 
 **Checkpoint**: On a branch with changes, `/codetodocs.run` updates only the affected component's docs. Unchanged component docs have identical timestamps.
 
@@ -103,7 +103,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T010 [US4] Create `codetodocs.status.prompt.md` with YAML frontmatter, coverage reporting workflow: read config.yaml → resolve components → check `{output_dir}/technical/`, `{output_dir}/product/`, `{output_dir}/ai/` for each component → parse `<!-- CodeToDocs | ... | Generated: {timestamp} -->` header from existing docs → compare generation timestamp against source file modification times for staleness → classify each component (Documented / Partially documented / Undocumented / Potentially stale) → calculate coverage percentage → format and display report per contracts/prompt-commands.md output format, in `.github/prompts/codetodocs.status.prompt.md`
+- [X] T010 [US4] Create `codetodocs.status.prompt.md` with YAML frontmatter, coverage reporting workflow: read config.yaml → resolve components → check `{output_dir}/technical/`, `{output_dir}/product/`, `{output_dir}/ai/` for each component → parse `<!-- CodeToDocs | ... | Generated: {timestamp} -->` header from existing docs → compare generation timestamp against source file modification times for staleness → classify each component (Documented / Partially documented / Undocumented / Potentially stale) → calculate coverage percentage → format and display report per contracts/prompt-commands.md output format, in `.github/prompts/codetodocs.status.prompt.md`
 
 **Checkpoint**: `/codetodocs.status` produces an accurate coverage report matching the contract output format.
 
@@ -119,11 +119,11 @@
 
 ### Implementation for User Story 0
 
-- [ ] T011 [P] [US0] Create package `__init__.py` with `__version__` constant in `installer/src/codetodocs/__init__.py` and `__main__.py` entry point (calls `cli.main()`) in `installer/src/codetodocs/__main__.py`
-- [ ] T012 [US0] Implement idempotent file-copy module with asset manifest (6 source→target mappings per data-model.md), Git repo detection, `--force` override, `--dry-run` simulation, and summary reporting in `installer/src/codetodocs/copy.py`
-- [ ] T013 [US0] Implement CLI argument parser with `--target-dir`, `--force`, `--dry-run`, `--version`, `--help` flags, output formatting (copied/skipped lists, count summary, next-step message), and exit codes (0=success, 1=error) per contracts/cli.md in `installer/src/codetodocs/cli.py`
-- [ ] T014 [US0] Bundle all prompt files and templates as package assets: copy `.github/prompts/codetodocs.*.prompt.md` to `installer/src/codetodocs/assets/prompts/` and `.codetodocs/templates/*` to `installer/src/codetodocs/assets/templates/`, add `__init__.py` files to each assets subdirectory for `importlib.resources` traversal
-- [ ] T015 [US0] Create installer tests: test idempotent copy (fresh + re-run), test `--force` overwrite, test `--dry-run` output, test non-Git-repo warning, test `--version` flag in `installer/tests/test_copy.py` and `installer/tests/test_cli.py`
+- [X] T011 [P] [US0] Create package `__init__.py` with `__version__` constant in `installer/src/codetodocs/__init__.py` and `__main__.py` entry point (calls `cli.main()`) in `installer/src/codetodocs/__main__.py`
+- [X] T012 [US0] Implement idempotent file-copy module with asset manifest (6 source→target mappings per data-model.md), Git repo detection, `--force` override, `--dry-run` simulation, and summary reporting in `installer/src/codetodocs/copy.py`
+- [X] T013 [US0] Implement CLI argument parser with `--target-dir`, `--force`, `--dry-run`, `--version`, `--help` flags, output formatting (copied/skipped lists, count summary, next-step message), and exit codes (0=success, 1=error) per contracts/cli.md in `installer/src/codetodocs/cli.py`
+- [X] T014 [US0] Bundle all prompt files and templates as package assets: copy `.github/prompts/codetodocs.*.prompt.md` to `installer/src/codetodocs/assets/prompts/` and `.codetodocs/templates/*` to `installer/src/codetodocs/assets/templates/`, add `__init__.py` files to each assets subdirectory for `importlib.resources` traversal
+- [X] T015 [US0] Create installer tests: test idempotent copy (fresh + re-run), test `--force` overwrite, test `--dry-run` output, test non-Git-repo warning, test `--version` flag in `installer/tests/test_copy.py` and `installer/tests/test_cli.py`
 
 **Checkpoint**: `cd /tmp/test-repo && git init && python -m codetodocs` copies 6 files. Re-running skips all 6. `--dry-run` shows plan without copying. `--force` overwrites.
 
@@ -133,10 +133,10 @@
 
 **Purpose**: Documentation, validation, and cleanup across all user stories
 
-- [ ] T016 [P] Create README.md with project overview, installation (`uvx codetodocs`), usage workflow (`/codetodocs.init` → `/codetodocs.run` → `/codetodocs.status`), configuration reference, component setup example, and custom documents example
-- [ ] T017 Verify all three prompt files are under 500 lines and 10K characters per research.md size constraints; refactor any that exceed limits
-- [ ] T018 Run quickstart.md validation: execute full end-to-end workflow (install → init → run → status) on a test repository and verify all outputs
-- [ ] T019 Invoke all three prompt commands (`/codetodocs.init`, `/codetodocs.run`, `/codetodocs.status`) in a second AI coding agent platform (e.g., Cursor or Windsurf) on the same test repository used in T018 and verify consistent output structure across platforms per FR-011 and SC-005
+- [X] T016 [P] Create README.md with project overview, installation (`uvx codetodocs`), usage workflow (`/codetodocs.init` → `/codetodocs.run` → `/codetodocs.status`), configuration reference, component setup example, and custom documents example
+- [X] T017 Verify all three prompt files are under 500 lines and 10K characters per research.md size constraints; refactor any that exceed limits
+- [X] T018 Run quickstart.md validation: execute full end-to-end workflow (install → init → run → status) on a test repository and verify all outputs
+- [X] T019 Invoke all three prompt commands (`/codetodocs.init`, `/codetodocs.run`, `/codetodocs.status`) in a second AI coding agent platform (e.g., Cursor or Windsurf) on the same test repository used in T018 and verify consistent output structure across platforms per FR-011 and SC-005
 
 ---
 
