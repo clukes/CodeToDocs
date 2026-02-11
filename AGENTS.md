@@ -4,7 +4,7 @@
 
 CodeToDocs is a prompt-driven agent tool that analyzes Git diffs and uses the AI coding agent's own LLM to auto-generate documentation in three formats: Technical (engineers), Product (PMs), and AI Context (JSON for RAG). Documentation is generated **per component** (or for the entire repository if not a monorepo), not per file. Distributed as a set of prompt files (`.md`) that are copied into any repository — zero compiled code, zero build step, zero dependencies.
 
-A lightweight bootstrap installer (`uvx codetodocs` or `npx codetodocs`) automates copying all files into a new repo with a single command.
+A lightweight bootstrap installer automates copying all files into a new repo with a single command. Install directly from GitHub source via `uvx --from "git+https://github.com/clukes/CodeToDocs.git#subdirectory=installer" codetodocs`.
 
 See [docs/PRD.md](docs/PRD.md) for the full product requirements.
 
@@ -28,7 +28,7 @@ CodeToDocs is implemented entirely as prompt files following the SpecKit pattern
 
 **Key design decisions:**
 - No compiled code at runtime — everything is Markdown prompt files
-- A thin bootstrap installer (`uvx codetodocs`) handles initial file copying into repos
+- A thin bootstrap installer (installed from GitHub source) handles initial file copying into repos
 - The agent's own LLM handles documentation generation — no separate API keys or provider configuration
 - Git operations use the agent's built-in tools or terminal `git` commands
 - Each prompt command is self-contained with all instructions needed for execution
@@ -90,7 +90,7 @@ exclude_defaults:
 
 ## Project Conventions
 
-- **Bootstrap install:** `uvx codetodocs` (or `npx codetodocs`) copies prompt files + templates into a repo
+- **Bootstrap install:** `uvx --from "git+https://github.com/clukes/CodeToDocs.git#subdirectory=installer" codetodocs` copies prompt files + templates into a repo
 - **Agent commands:** `/codetodocs.init` (scaffold config + templates), `/codetodocs.run` (generate/update docs), `/codetodocs.status` (coverage report)
 - **Config format:** YAML at `.codetodocs/config.yaml` with keys: `output_dir`, `target_branch`, `components`, `documents`, `exclude_defaults`
 - **Documentation scope:** Per component (or whole repo if no components defined), not per file

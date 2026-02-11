@@ -13,7 +13,7 @@
 ## 1. Executive Summary
 **CodeToDocs** is an open-source, prompt-driven tool designed to solve the "stale documentation" problem in modern software development. It automates the maintenance of documentation by analyzing **Git diffs** and using AI coding agents (GitHub Copilot, Cursor, etc.) to generate updates.
 
-The tool is distributed as a **set of prompt files** (`.md`) that are copied into any repository — zero compiled code, zero build step. A lightweight bootstrap installer (`uvx codetodocs` or `npx codetodocs`) automates copying these files into any repo with a single command. It follows the same pattern as SpecKit: agent prompt files that orchestrate documentation generation through the AI assistant already available in the developer's editor.
+The tool is distributed as a **set of prompt files** (`.md`) that are copied into any repository — zero compiled code, zero build step. A lightweight bootstrap installer automates copying these files into any repo with a single command — installed directly from GitHub source. It follows the same pattern as SpecKit: agent prompt files that orchestrate documentation generation through the AI assistant already available in the developer's editor.
 
 ---
 
@@ -29,7 +29,7 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 ---
 
 ## 3. User Experience (UX) Goals
-* **One-Command Setup:** A user must be able to run `uvx codetodocs` (or `npx codetodocs`) in any repo to copy all prompt files and templates, then invoke `/codetodocs.init` to configure.
+* **One-Command Setup:** A user must be able to install the bootstrap CLI from GitHub source and run `codetodocs` in any repo to copy all prompt files and templates, then invoke `/codetodocs.init` to configure.
 * **Manual Control:** The tool does **not** run automatically in the background. It is triggered manually by the developer via a specific agent command (e.g., `/codetodocs.run`).
 * **Native Agent Integration:** The tool IS an agent command — no separate binary, no bridge layer. It works wherever the developer's AI assistant works (VS Code + Copilot, Cursor, etc.).
 
@@ -157,7 +157,7 @@ documents:
 
 ### 5.1. Stack
 * **Implementation:** Prompt files (Markdown) — no compiled language.
-* **Bootstrap Installer:** Lightweight Python package (via `uvx`) or Node package (via `npx`) that copies files into the target repo. The installer is a thin file-copy script — it does not run at documentation-generation time.
+* **Bootstrap Installer:** Lightweight Python package (installed from GitHub source via `uvx` or `pip`) that copies files into the target repo. The installer is a thin file-copy script — it does not run at documentation-generation time.
 * **Execution Environment:** Any AI coding agent (GitHub Copilot, Cursor, Windsurf, etc.).
 * **Git:** Agent's built-in Git tools or terminal `git` commands.
 * **LLM:** The agent's own model — no separate API keys or LLM client needed.
@@ -241,7 +241,7 @@ my-monorepo/
 1.  **Portability:** Must work with any AI coding agent that supports prompt files (VS Code + Copilot, Cursor, etc.).
 2.  **Security:** No API keys are managed by this tool — the agent's own authentication handles LLM access.
 3.  **Determinism:** Prompt instructions MUST be specific enough to produce consistent output structure across different agent models and invocations.
-4.  **One-Command Install:** `uvx codetodocs` or `npx codetodocs` must copy all files into the current repo in under 5 seconds. The installer must not modify any existing files.
+4.  **One-Command Install:** The installer must copy all files into the current repo in under 5 seconds. The installer must not modify any existing files.
 5.  **Simplicity:** The installer is a thin file-copy script. The actual documentation logic lives entirely in prompt files.
 
 ---
@@ -249,8 +249,7 @@ my-monorepo/
 ## 7. Milestones
 
 ### Phase 0: The "Installer" (Bootstrap)
-* [ ] Python package with `pyproject.toml` for `uvx codetodocs`.
-* [ ] Node package with `package.json` for `npx codetodocs` (optional alternative).
+* [ ] Python package with `pyproject.toml` — installed from GitHub source (not published to PyPI).
 * [ ] Installer script that copies prompt files + templates into the current repo.
 * [ ] Idempotent: skip files that already exist, never overwrite.
 

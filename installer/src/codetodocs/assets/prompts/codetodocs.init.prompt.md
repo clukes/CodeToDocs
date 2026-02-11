@@ -7,7 +7,7 @@ mode: agent
 
 ## Purpose
 
-This command creates `.codetodocs/config.yaml` by analyzing the current repository and walking the user through configuration choices. Templates and prompt files should already be in place from the bootstrap installer (`uvx codetodocs`).
+This command creates `.codetodocs/config.yaml` by analyzing the current repository and walking the user through configuration choices. Templates and prompt files should already be in place from the bootstrap installer.
 
 **Created file:**
 
@@ -38,7 +38,7 @@ Check that the bootstrap installer has already copied the required files:
 
 If any of these files are missing:
 - List the missing files.
-- Report: "Missing files. Please run `uvx codetodocs` (or `npx codetodocs`) first to install prompt files and templates."
+- Report: "Missing files. Please run the CodeToDocs installer first to install prompt files and templates. See: https://github.com/clukes/CodeToDocs#installation"
 - **Stop execution here.**
 
 If all files are present → proceed to Step 3.

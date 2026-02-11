@@ -7,10 +7,15 @@ Prompt-driven documentation generator for AI coding agents. Analyzes your codeba
 Inside a repo run:
 
 ```bash
-uvx codetodocs
+uvx --from "git+https://github.com/clukes/CodeToDocs.git#subdirectory=installer" codetodocs
 ```
 
-Also works with `pipx run codetodocs` or `pip install codetodocs`.
+Alternatively, install via pip:
+
+```bash
+pip install "git+https://github.com/clukes/CodeToDocs.git#subdirectory=installer"
+codetodocs
+```
 
 This copies prompt files and templates into your repository.
 
@@ -105,7 +110,7 @@ For single-component repositories, omit the `components` section — the entire 
 
 CodeToDocs is implemented entirely as **prompt files** (`.github/prompts/codetodocs.*.prompt.md`). When you invoke a command, the AI coding agent reads the prompt and executes the instructions using its own LLM — no separate API keys, no external services.
 
-The bootstrap installer (`uvx codetodocs`) simply copies these files into your repo. After that, it's not needed again.
+The bootstrap installer simply copies these files into your repo. After that, it's not needed again.
 
 ## Ignore Files
 
@@ -116,9 +121,8 @@ CodeToDocs respects:
 ## Development
 
 ```bash
-git clone <repo-url>
-cd CodeToDocs
-cd installer
+git clone https://github.com/clukes/CodeToDocs.git
+cd CodeToDocs/installer
 uv venv && source .venv/bin/activate
 uv pip install -e . && uv pip install pytest
 

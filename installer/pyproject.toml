@@ -30,8 +30,8 @@ classifiers = [
 codetodocs = "codetodocs.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/codetodocs/codetodocs"
-Repository = "https://github.com/codetodocs/codetodocs"
+Homepage = "https://github.com/clukes/CodeToDocs"
+Repository = "https://github.com/clukes/CodeToDocs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/codetodocs"]

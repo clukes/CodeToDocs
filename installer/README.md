@@ -5,7 +5,13 @@ Bootstrap installer for CodeToDocs — a prompt-driven documentation generator f
 ## Installation
 
 ```bash
-uvx codetodocs
+uvx --from "git+https://github.com/clukes/CodeToDocs.git#subdirectory=installer" codetodocs
+```
+
+Or via pip:
+
+```bash
+pip install "git+https://github.com/clukes/CodeToDocs.git#subdirectory=installer"
 ```
 
 ## Usage
