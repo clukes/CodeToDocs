@@ -2,18 +2,18 @@
 
 | **Project Name** | **CodeToDocs** |
 | :--- | :--- |
-| **Version** | 1.1 (Refined) |
+| **Version** | 2.0 (Prompt-Driven) |
 | **Status** | Draft |
-| **Type** | Developer Tool / CLI |
-| **Language** | Go (Golang) |
+| **Type** | Developer Tool / Agent Prompts |
+| **Implementation** | Prompt files (Markdown) — no compiled code |
 | **License** | Open Source (MIT/Apache 2.0) |
 
 ---
 
 ## 1. Executive Summary
-**CodeToDocs** is an open-source, local-first CLI tool designed to solve the "stale documentation" problem in modern software development. It automates the maintenance of documentation by analyzing **Git diffs** and using Large Language Models (LLMs) to generate updates.
+**CodeToDocs** is an open-source, prompt-driven tool designed to solve the "stale documentation" problem in modern software development. It automates the maintenance of documentation by analyzing **Git diffs** and using AI coding agents (GitHub Copilot, Cursor, etc.) to generate updates.
 
-The tool is distributed as a **single, static binary** (zero dependencies) to ensure a seamless developer experience.
+The tool is distributed as a **set of prompt files** (`.md`) that are copied into any repository — zero compiled code, zero build step. A lightweight bootstrap installer automates copying these files into any repo with a single command — installed directly from GitHub source. It follows the same pattern as SpecKit: agent prompt files that orchestrate documentation generation through the AI assistant already available in the developer's editor.
 
 ---
 
@@ -29,140 +29,247 @@ The primary purpose is to provide comprehensive, auto-updating documentation for
 ---
 
 ## 3. User Experience (UX) Goals
-* **Zero-Config Start:** A user must be able to download the binary and run `codetodocs init` to fully configure their repo in < 5 seconds.
-* **Manual Control:** The tool does **not** run automatically in the background. It is triggered manually by the developer (`codetodocs run`) or via a specific agent command.
-* **Custom Agent Integration:** The tool is designed to be invoked as a distinct capability (e.g., `/codetodocs` or `@codetodocs`), similar to how `/speckit` works. It does not implicitly pollute general chat contexts.
+* **One-Command Setup:** A user must be able to install the bootstrap CLI from GitHub source and run `codetodocs` in any repo to copy all prompt files and templates, then invoke `/codetodocs.init` to configure.
+* **Manual Control:** The tool does **not** run automatically in the background. It is triggered manually by the developer via a specific agent command (e.g., `/codetodocs.run`).
+* **Native Agent Integration:** The tool IS an agent command — no separate binary, no bridge layer. It works wherever the developer's AI assistant works (VS Code + Copilot, Cursor, etc.).
 
 ---
 
 ## 4. Core Functional Requirements
 
-### 4.1. Initialization (`init` command)
-* **Goal:** Establish the "Constitution" of the repository.
+### 4.1. Initialization (`/codetodocs.init` command)
+* **Goal:** Establish the configuration and templates for the repository.
 * **Behavior:**
     * Check for the existence of `.codetodocs/`.
-    * **Eject Templates:** Extract embedded default templates (Human Markdown, AI JSON, Config YAML) into `.codetodocs/templates/` to allow user customization.
-    * **Setup:** Initialize the `.codetodocs/config.yaml` with sensible defaults.
-* **UX:** Display a spinner during setup and a success checkmark upon completion (using `bubbletea`).
-* **Agent Output:** Instead of modifying global instructions, output a success message telling the user how to register the tool as a custom agent or alias (e.g., *"To use with Copilot, add this alias..."*).
+    * **Create Templates:** Write default templates (Technical Markdown, Product Markdown, AI JSON) into `.codetodocs/templates/` to allow user customization.
+    * **Setup:** Create `.codetodocs/config.yaml` with sensible defaults.
+* **UX:** The agent confirms each step and reports completion with a summary of created files.
 
 ### 4.2. Git Integration
-* **Diff Analysis:** The tool must identify changed files between `HEAD` and a target branch (default: `main`).
+* **Diff Analysis:** The agent must identify changed files between `HEAD` and a target branch (default: `main`) using Git commands or agent tools.
 * **Context Awareness:**
     * It must read the **full content** of the changed file (for context) and the **diff** (for focus).
     * It must respect `.gitignore` and a custom `.codetodocsignore`.
 
 ### 4.3. Documentation Outputs (The "Tri-Audience" Strategy)
 
-**Core Requirement:** Every source file processed must generate three distinct artifacts to serve different stakeholders.
+**Core Requirement:** Each **component** (or the entire repository if not a monorepo) generates three distinct documentation artifacts to serve different stakeholders. Documentation is at the component level, not per-file.
+
+**Component Definition:**
+* A **component** is a logical unit of the codebase — a service, library, app, or module.
+* For simple repositories, the entire repo is treated as a single component.
+* For monorepos, users define multiple components (e.g., `frontend`, `backend`, `shared-lib`).
+* Components are specified in `.codetodocs/config.yaml`.
 
 **Trigger & Processing:**
-* **Input:** Source code content + Git Diff (if updating).
-* **Optimization:** The system should ideally use a **single LLM call** per file to generate all three outputs simultaneously (using Structured Outputs/JSON Mode) to reduce latency and cost.
+* **Input:** All source files within the component + Git Diff (if updating).
+* **Processing:** The agent reads the component's codebase holistically, applies the prompt instructions, and generates one set of docs per component.
 
 **Output 1: Technical Docs (Target: Engineers)**
-* **Location:** `docs/technical/{filename}.md`
-* **Focus:** Implementation details, "How to work with this code."
+* **Location:** `docs/technical/{component}.md` (default) or custom path
+* **Focus:** Implementation details, "How to work with this component."
 * **Content:**
-    * **Setup/Usage:** How to import or instantiate this module.
-    * **Key Functions:** Technical explanation of the main methods.
-    * **Edge Cases:** Known limitations or specific error handling logic.
-    * **Dependencies:** What external libraries this file relies on.
+    * **Purpose:** What this component does and why it exists.
+    * **Architecture:** High-level structure, key modules, and data flow.
+    * **Setup & Installation:** How to set up the development environment.
+    * **Running:** How to run, build, and test the component.
+    * **Configuration:** Environment variables, config files, and settings.
+    * **Key APIs/Functions:** Technical explanation of the main interfaces.
+    * **Edge Cases:** Known limitations, error handling, and gotchas.
+    * **Dependencies:** External libraries and services this component relies on.
 
 **Output 2: Product Docs (Target: PMs/Stakeholders)**
-* **Location:** `docs/product/{filename}.md`
-* **Focus:** Business value, "What does this actually do for the user/business?"
+* **Location:** `docs/product/{component}.md` (default) or custom path
+* **Focus:** Business value, "What does this component do for the user/business?"
 * **Content:**
-    * **Feature Summary:** High-level description of functionality in plain English (no code).
-    * **Business Rules:** specific logic that impacts the business (e.g., "Users must be verified to see X").
-    * **User Impact:** How changes in this file affect the end-user experience.
+    * **Purpose:** Plain-English description of functionality.
+    * **Features:** Key capabilities and user-facing functionality.
+    * **Business Rules:** Policies and logic that impact the business (e.g., "Users must be verified to see X").
+    * **User Impact:** How this component affects the end-user experience.
+    * **Configuration & Policies:** Business-relevant settings and constraints.
 
 **Output 3: AI Context (Target: Agents/RAG)**
-* **Location:** `docs/ai/{filename}.json`
-* **Focus:** Machine-readable structural facts.
+* **Location:** `docs/ai/{component}.yaml` (default) or custom path
+* **Focus:** Machine-readable structural facts for the entire component.
 * **Content:**
-    * Strict JSON schema containing signatures, types, exports, and complexity scores.
+    * Component purpose and responsibilities.
+    * Key modules, classes, and their relationships.
+    * Public API signatures and types.
+    * Configuration schema.
+
 ### 4.4. Configuration
 * **File:** `.codetodocs/config.yaml`.
-* **Settings:**
-    * `provider`: (openai | anthropic | ollama)
-    * `model`: (gpt-4o, claude-3.5-sonnet, llama-3)
-    * `output_dir`: (default: `docs/`)
-    * `target_branch`: (default: `main`)
+* **Core Settings:**
+    * `output_dir`: (default: `docs/`) — Base directory for generated documentation.
+    * `target_branch`: (default: `main`) — Branch to diff against for incremental updates.
+
+* **Component Definition:**
+    * `components`: A list defining the logical components of the repository.
+    * Each component specifies:
+        * `name`: Identifier used in output filenames.
+        * `paths`: List of directory/file paths that belong to this component.
+        * `description`: Brief description of the component's purpose.
+    * If `components` is omitted or empty, the entire repository is treated as a single component named after the repo.
+
+* **Custom Documents:**
+    * `documents`: Optional list of additional document definitions beyond the three defaults.
+    * Each document specifies:
+        * `name`: Document identifier.
+        * `template`: Path to a custom template file.
+        * `output`: Custom output path (overrides default location).
+        * `audience`: Target audience description.
+    * Users can also override the output paths for the default documents (technical, product, ai) per component.
+
+**Example Configuration:**
+```yaml
+# .codetodocs/config.yaml
+output_dir: docs/
+target_branch: main
+
+# Component definitions (omit for single-component repos)
+components:
+  - name: frontend
+    paths:
+      - apps/web/
+      - packages/ui/
+    description: React web application and shared UI components
+  - name: backend
+    paths:
+      - apps/api/
+      - packages/db/
+    description: Node.js API server and database layer
+  - name: shared
+    paths:
+      - packages/common/
+    description: Shared utilities and types
+
+# Optional: Custom documents beyond the defaults
+documents:
+  - name: runbook
+    template: .codetodocs/templates/runbook.md
+    output: docs/operations/{component}-runbook.md
+    audience: SRE/Operations team
+```
 
 ---
 
 ## 5. Technical Architecture
 
 ### 5.1. Stack
-* **Language:** Go (1.22+) - chosen for speed, type safety, and single-binary distribution.
-* **CLI Framework:** `spf13/cobra` (Command routing).
-* **Configuration:** `spf13/viper` (YAML/Env parsing).
-* **Git:** `go-git/v5` (Native Git implementation; no system git dependency).
-* **TUI:** `charmbracelet/lipgloss` (Styling) & `bubbletea` (Interactivity).
-* **LLM Client:** Standard `net/http` or `tmc/langchaingo`.
+* **Implementation:** Prompt files (Markdown) — no compiled language.
+* **Bootstrap Installer:** Lightweight Python package (installed from GitHub source via `uvx` or `pip`) that copies files into the target repo. The installer is a thin file-copy script — it does not run at documentation-generation time.
+* **Execution Environment:** Any AI coding agent (GitHub Copilot, Cursor, Windsurf, etc.).
+* **Git:** Agent's built-in Git tools or terminal `git` commands.
+* **LLM:** The agent's own model — no separate API keys or LLM client needed.
+* **Inspiration:** SpecKit (`.github/prompts/speckit.*.prompt.md`).
 
 ### 5.2. File Structure
 
-**Project Layout:**
+**Project Layout (CodeToDocs itself):**
 ```text
 codetodocs/
-├── cmd/
-│   └── root.go          # Entry point (Cobra)
-├── internal/
-│   ├── config/          # Viper config loader
-│   ├── git/             # Diff logic & File reading
-│   ├── llm/             # API Client Adapters
-│   ├── generator/       # Core Logic (Prompting & File Writing)
-│   ├── templates/       # Embedded assets (go:embed)
-│   └── tui/             # Lipgloss styles & Spinners
-└── templates/           # Raw source files to embed
-    ├── technical_doc.md # Template for Engineering docs
-    ├── product_doc.md   # Template for PM docs
-    ├── ai_context.json  # Template for AI docs
-    └── agent_instructions.md
+├── installer/
+│   ├── pyproject.toml               # Python package config (for uvx)
+│   ├── package.json                  # Node package config (for npx)
+│   └── codetodocs_install.py         # Installer script: copies files into target repo
+├── files/                            # Source files that get copied into user repos
+│   ├── .github/
+│   │   └── prompts/
+│   │       ├── codetodocs.init.prompt.md
+│   │       ├── codetodocs.run.prompt.md
+│   │       └── codetodocs.status.prompt.md
+│   └── .codetodocs/
+│       └── templates/
+│           ├── technical_doc.md
+│           ├── product_doc.md
+│           └── ai_context.yaml
+└── docs/
+    └── PRD.md
 ```
 
-**Generated Documentation Layout (User Repo):**
+**Generated Documentation Layout (User Repo after init + run):**
+
+*Single-component repository:*
 ```text
 my-repo/
-├── .codetodocs/         # Configuration & Templates
+├── .github/
+│   └── prompts/
+│       ├── codetodocs.init.prompt.md
+│       ├── codetodocs.run.prompt.md
+│       └── codetodocs.status.prompt.md
+├── .codetodocs/
+│   ├── config.yaml
+│   └── templates/
+│       ├── technical_doc.md
+│       ├── product_doc.md
+│       └── ai_context.yaml
 ├── docs/
-│   ├── technical/       # "How it works"
-│   │   ├── auth.md
-│   │   └── payment.md
-│   ├── product/         # "What it does"
-│   │   ├── auth.md
-│   │   └── payment.md
-│   └── ai/              # "Structure & Facts"
-│       ├── auth.json
-│       └── payment.json
+│   ├── technical/
+│   │   └── my-repo.md       # Single technical doc for entire repo
+│   ├── product/
+│   │   └── my-repo.md       # Single product doc for entire repo
+│   └── ai/
+│       └── my-repo.yaml     # Single AI context for entire repo
+```
+
+*Multi-component (monorepo) repository:*
+```text
+my-monorepo/
+├── .github/
+│   └── prompts/
+│       └── codetodocs.*.prompt.md
+├── .codetodocs/
+│   ├── config.yaml          # Defines components: frontend, backend, shared
+│   └── templates/
+│       └── ...
+├── docs/
+│   ├── technical/
+│   │   ├── frontend.md      # Technical docs for frontend component
+│   │   ├── backend.md       # Technical docs for backend component
+│   │   └── shared.md        # Technical docs for shared component
+│   ├── product/
+│   │   ├── frontend.md
+│   │   ├── backend.md
+│   │   └── shared.md
+│   └── ai/
+│       ├── frontend.yaml
+│       ├── backend.yaml
+│       └── shared.yaml
 ```
 
 ## 6. Non-Functional Requirements
-1.  **Performance:** The CLI must start in < 50ms.
-2.  **Portability:** Must compile to Windows (`.exe`), macOS (ARM/Intel), and Linux.
-3.  **Security:** API Keys must **never** be stored in `config.yaml`. They must only be read from Environment Variables (`OPENAI_API_KEY`).
-4.  **Reliability:** If the LLM returns invalid JSON, the tool must retry automatically (up to 3 times).
+1.  **Portability:** Must work with any AI coding agent that supports prompt files (VS Code + Copilot, Cursor, etc.).
+2.  **Security:** No API keys are managed by this tool — the agent's own authentication handles LLM access.
+3.  **Determinism:** Prompt instructions MUST be specific enough to produce consistent output structure across different agent models and invocations.
+4.  **One-Command Install:** The installer must copy all files into the current repo in under 5 seconds. The installer must not modify any existing files.
+5.  **Simplicity:** The installer is a thin file-copy script. The actual documentation logic lives entirely in prompt files.
 
 ---
 
 ## 7. Milestones
 
+### Phase 0: The "Installer" (Bootstrap)
+* [ ] Python package with `pyproject.toml` — installed from GitHub source (not published to PyPI).
+* [ ] Installer script that copies prompt files + templates into the current repo.
+* [ ] Idempotent: skip files that already exist, never overwrite.
+
 ### Phase 1: The "Constitution" (MVP)
-* [ ] Go module setup & CLI skeleton.
-* [ ] `init` command (Templates & Config injection).
+* [ ] Prompt file structure and `codetodocs.init.prompt.md`.
+* [ ] Default templates (technical, product, AI context).
+* [ ] `config.yaml` schema and defaults.
 
 ### Phase 2: The "Crawler" (Zero State)
-* [ ] Implement file system walker (respecting `.gitignore`).
-* [ ] Create "Full Scan" logic to document the entire repo from scratch.
-* [ ] specific "State of the World" LLM prompts (ignoring diffs, focusing on absolute state).
+* [ ] `codetodocs.run.prompt.md` for full-scan documentation.
+* [ ] File discovery logic in prompt (respecting `.gitignore` + `.codetodocsignore`).
+* [ ] Component detection and per-component tri-audience generation instructions.
+* [ ] Support for both single-component repos and monorepos with multiple components.
 
 ### Phase 3: The "Updater" (Incremental)
-* [ ] Implement Git Diff triggers.
-* [ ] Create "Comparison Logic": (Old Doc + New Code) -> New Doc.
-* [ ] Optimization: Skip LLM calls for trivial changes (comments/formatting).
+* [ ] Git diff detection logic in run prompt.
+* [ ] Incremental update mode: regenerate docs only for components with changed files.
+* [ ] Trivial change detection guidance (skip component regeneration for trivial-only changes).
 
-### Phase 4: Distribution
-* [ ] GitHub Action (Dockerfile).
-* [ ] Homebrew Tap.
+### Phase 4: Polish
+* [ ] `codetodocs.status.prompt.md` for documentation coverage reporting.
+* [ ] Refinement of prompt instructions for output consistency.
+* [ ] User documentation and README.

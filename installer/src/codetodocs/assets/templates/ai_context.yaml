@@ -1,0 +1,67 @@
+# CodeToDocs AI Context
+# Audience: AI coding agents and RAG retrieval
+# Instructions: Replace placeholder values with generated content from source analysis.
+#   Keep this file under 200 lines. Prioritize public API surface and architecture.
+
+_codetodocs:
+  component: "{component}"
+  generated: "{YYYY-MM-DDTHH:MM:SSZ}"
+  schema_version: "2.0"
+
+component:
+  name: "{component}"
+  purpose: Brief description of what this component does
+  languages: [Language]
+  entry_points: [path/to/entry]
+
+# How this component connects to other services and systems
+integration:
+  upstream: # services/systems that call or send data to this component
+    - service: service-name
+      protocol: HTTP | gRPC | queue | event | database
+      description: What this component receives
+  downstream: # services/systems this component calls or sends data to
+    - service: service-name
+      protocol: HTTP | gRPC | queue | event | database
+      description: What this component sends
+  events_published:
+    - "topic-name: PayloadType — when and why published"
+  events_consumed:
+    - "topic-name: PayloadType — what happens on receipt"
+  data_ownership: [entities this component owns]
+  flows:
+    - "flow-name: role (step N of M)"
+
+# Logical groupings of source files (5-20 entries, NOT one per file)
+modules:
+  - path: path/to/module/
+    purpose: What this module does
+    exports: [key, public, symbols]
+
+# Public API surface only — skip private/internal helpers
+api:
+  functions:
+    - name: functionName
+      signature: "full signature in source language"
+      description: What it does
+  classes:
+    - name: ClassName
+      description: Class purpose
+      methods:
+        - "methodName(args) -> Return — what it does"
+
+# Domain types that appear in public API signatures
+types:
+  - name: TypeName
+    definition: "type definition in source language"
+
+# User-facing configuration only
+configuration:
+  files: [config file paths]
+  env_vars:
+    - "VAR_NAME: type, required|optional, default — what it controls"
+
+dependencies:
+  internal: [component-name]
+  external:
+    - "package-name >=1.0 — why it is used"

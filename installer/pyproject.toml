@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codetodocs"
+version = "0.3.0"
+description = "Bootstrap installer for CodeToDocs — a prompt-driven documentation generator for AI coding agents"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "CodeToDocs Contributors" },
+]
+keywords = ["documentation", "ai", "coding-agent", "copilot", "prompt"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+]
+
+[project.scripts]
+codetodocs = "codetodocs.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/clukes/CodeToDocs"
+Repository = "https://github.com/clukes/CodeToDocs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codetodocs"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
