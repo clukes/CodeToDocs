@@ -1,6 +1,6 @@
 ---
 description: "Generate or update CodeToDocs documentation for all components"
-mode: agent
+agent: 'agent'
 ---
 
 # /codetodocs.run — Generate Documentation
