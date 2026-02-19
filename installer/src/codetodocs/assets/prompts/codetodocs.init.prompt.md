@@ -1,6 +1,6 @@
 ---
 description: "Initialize CodeToDocs configuration for the current repository"
-mode: agent
+agent: 'agent'
 ---
 
 # `/codetodocs.init` — Initialize CodeToDocs

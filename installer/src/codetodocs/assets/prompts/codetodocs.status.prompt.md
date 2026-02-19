@@ -1,6 +1,6 @@
 ---
 description: "Report documentation coverage status for all components"
-mode: agent
+agent: 'agent'
 ---
 
 # /codetodocs.status — Documentation Coverage Report
