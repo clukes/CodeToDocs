@@ -1,6 +1,13 @@
 # CodeToDocs
 
-Prompt-driven documentation generator for AI coding agents. Analyzes your codebase and generates documentation in three formats — Technical (engineers), Product (PMs), and AI Context (JSON for RAG) — per component.
+CodeToDocs automatically generates, and updates, documentation from your code. It uses AI coding agents with a prompt-driven workflow. 
+
+The agent analyzes your codebase and generates documentation in three formats by default:
+- **Technical (engineers)**
+- **Product (PMs)**
+- **AI Context (JSON for RAG)**
+
+It supports repos with one or multiple components (monorepos) and can be configured to generate custom document types.
 
 ## Installation
 

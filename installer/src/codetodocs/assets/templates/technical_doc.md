@@ -50,16 +50,6 @@ Document all configuration options:
 - Default values and overrides
 - Required vs. optional settings
 
-## Key APIs
-
-List the public interface of this component:
-- Exported functions and their signatures
-- Classes and their public methods
-- HTTP endpoints (if applicable) — include method, path, request/response schemas
-- Event hooks or callbacks
-- Events published and consumed (topic/queue names, payload schemas)
-- Include parameter types, return types, and brief descriptions
-
 ## Edge Cases
 
 Document known limitations and boundary conditions:
@@ -75,3 +65,13 @@ List all dependencies:
 - External dependencies (third-party packages) with version constraints
 - Infrastructure dependencies (databases, message brokers, caches, etc.)
 - System-level requirements
+
+## Key APIs
+
+List the public interface of this component:
+- Exported functions and their signatures
+- Classes and their public methods
+- HTTP endpoints (if applicable) — include method, path, request/response schemas
+- Event hooks or callbacks
+- Events published and consumed (topic/queue names, payload schemas)
+- Include parameter types, return types, and brief descriptions

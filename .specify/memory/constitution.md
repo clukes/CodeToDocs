@@ -72,9 +72,9 @@ Each prompt file MUST be a self-contained, isolated command.
 predictable. Implicit side-effects erode trust. Agent commands
 are inherently explicit — the user types the command.
 
-### III. Tri-Audience Output (NON-NEGOTIABLE)
+### III. Tri-Audience Output
 
-Every processed component MUST produce exactly three distinct
+Every processed component MUST produce by default exactly three distinct
 documentation artifacts:
 
 1. **Technical Docs** (`docs/technical/{component}.md`) — targeted
@@ -86,7 +86,7 @@ documentation artifacts:
    exports, and complexity scores.
 
 The prompt instructions MUST guide the agent to generate all
-three artifacts for each component. If any artifact cannot be
+three artifacts for each component (unless any are skipped). If any artifact cannot be
 generated for a component, the agent MUST report it rather than
 silently skipping.
 
