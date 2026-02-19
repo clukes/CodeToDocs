@@ -47,3 +47,4 @@ List user-facing configuration options, their defaults, and tunable behaviors. F
 - Default value
 - Accepted values or range
 - Effect on component behavior
+- Configuration values (e.g. values in each production market or environment, if it affects business processes or rules)
