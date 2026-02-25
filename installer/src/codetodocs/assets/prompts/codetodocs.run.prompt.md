@@ -326,6 +326,8 @@ For each affected component, classify the diff:
 
 Report these as "skipped (no doc-relevant changes)".
 
+If the component is skipped, its existing documentation files MUST NOT be modified or rewritten — not even for cosmetic improvements.
+
 **Update docs only if changes include any of:**
 - New or removed public APIs, endpoints, classes, or functions
 - Changed function signatures, return types, or parameter types
@@ -352,6 +354,22 @@ For each non-trivial affected component:
 6. **Write** updated files with a new timestamp in the header marker.
 
 Unchanged components' documentation files are **not modified** — their timestamps remain the same.
+
+#### 10.4.1 Incremental Stability Rules
+
+When updating existing documentation (not generating from scratch):
+
+1. **Preserve existing wording** — Keep all sentences, phrasing, bullet text, and structure
+   that are still factually correct. Do NOT reword, rephrase, synonymize, or reorganize
+   content that doesn't need correcting.
+2. **Only modify what the diff demands** — Add new sections/entries for new APIs, features,
+   or config. Remove entries for deleted APIs. Correct descriptions that are now factually
+   wrong. Leave everything else untouched, character for character.
+3. **No cosmetic edits** — Do not change bullet ordering, heading capitalization, whitespace
+   style, synonym choices, sentence structure, or phrasing unless the existing text is
+   factually incorrect due to the code change.
+4. **Timestamp exception** — Update only the header marker timestamp. If no semantic changes
+   are needed, output the existing document with only the timestamp updated.
 
 ### 10.5 Incremental Summary
 
